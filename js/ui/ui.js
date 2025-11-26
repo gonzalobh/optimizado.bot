@@ -28,6 +28,7 @@ const registerTranslationTarget = (node, key, target = 'text', options = {}) => 
 if (!node || !window.translationManager) return;
 translationManager.register(node, key, target, options);
 };
+const modalHandlers = window.ModalHandlers || {};
 const PERSONALITY_TRANSLATION_ENTRIES = [
 { value: 'friendly', key: 'Friendly' },
 { value: 'professional', key: 'Professional' },
@@ -1239,40 +1240,20 @@ trigger.classList.remove('opacity-50', 'pointer-events-none');
 }
 }
 }
-function openDashboardDeleteModal(botId, trigger) {
-if (!botId) return;
-if (!canWriteFlag) {
-toast('⚠ No tienes permisos para eliminar bots');
-return;
-}
-const modal = $('dashboardDeleteModal');
-if (!modal) {
-handleDashboardDelete(botId, trigger);
-return;
-}
-dashboardDeleteModalBotId = botId;
-dashboardDeleteModalTrigger = trigger || null;
-const nameEl = $('dashboardDeleteBotName');
-if (nameEl) {
-nameEl.textContent = getDashboardBotName(botId) || botId || 'este bot';
-}
-modal.classList.remove('hidden');
-modal.classList.add('flex');
-}
-function closeDashboardDeleteModal(force = false) {
-const modal = $('dashboardDeleteModal');
-if (!modal) return;
-const confirmBtn = $('confirmDashboardDelete');
-if (!force && confirmBtn && confirmBtn.disabled) return;
-modal.classList.add('hidden');
-modal.classList.remove('flex');
-dashboardDeleteModalBotId = null;
-const trigger = dashboardDeleteModalTrigger;
-dashboardDeleteModalTrigger = null;
-if (trigger && typeof trigger.focus === 'function') {
-trigger.focus();
-}
-}
+const dashboardDeleteModalContext = {
+canWriteFlag,
+toast,
+$,
+getDashboardBotName,
+setBotId: (value) => { dashboardDeleteModalBotId = value; },
+setTrigger: (value) => { dashboardDeleteModalTrigger = value; },
+getTrigger: () => dashboardDeleteModalTrigger,
+handleDelete: handleDashboardDelete,
+};
+const openDashboardDeleteModal = (botId, trigger) =>
+modalHandlers.openDashboardDeleteModal(botId, trigger, dashboardDeleteModalContext);
+const closeDashboardDeleteModal = (force = false) =>
+modalHandlers.closeDashboardDeleteModal(force, dashboardDeleteModalContext);
 async function handleDashboardDelete(botId, trigger) {
 if (!botId) return false;
 if (!canWriteFlag) {
@@ -2883,14 +2864,14 @@ feedbackEl.classList.toggle('hidden', !message);
 feedbackEl.classList.toggle('text-red-600', !!message && isError);
 feedbackEl.classList.toggle('text-gray-500', !isError);
 };
-const toggleModalVisibility = (modalEl, show = false) => {
+const toggleModalVisibility = modalHandlers.toggleModalVisibility || ((modalEl, show = false) => {
 if (!modalEl) return;
 modalEl.classList.toggle('hidden', !show);
 modalEl.classList.toggle('flex', show);
 if (show && window.lucide) {
 lucide.createIcons();
 }
-};
+});
 const resetChangePasswordModal = () => {
 if (changePasswordInput) changePasswordInput.value = '';
 if (changePasswordError) changePasswordError.classList.add('hidden');
@@ -2901,26 +2882,25 @@ const message = t(messageKey);
 changePasswordError.textContent = message;
 changePasswordError.classList.toggle('hidden', !message);
 };
-const openChangePasswordModal = (emailKey) => {
-pendingChangePasswordKey = emailKey;
-resetChangePasswordModal();
-toggleModalVisibility(changePasswordModal, true);
-if (changePasswordInput) changePasswordInput.focus();
+const changePasswordModalContext = {
+setPendingKey: (value) => { pendingChangePasswordKey = value; },
+resetModal: resetChangePasswordModal,
+modalEl: changePasswordModal,
+inputEl: changePasswordInput,
 };
-const closeChangePasswordModal = () => {
-pendingChangePasswordKey = '';
-toggleModalVisibility(changePasswordModal, false);
+const deleteUserModalContext = {
+setPendingKey: (value) => { pendingDeleteEmailKey = value; },
+setPendingEmail: (value) => { pendingDeleteEmailValue = value; },
+modalEl: deleteUserModal,
 };
-const openDeleteUserModal = (emailKey, emailValue) => {
-pendingDeleteEmailKey = emailKey;
-pendingDeleteEmailValue = emailValue;
-toggleModalVisibility(deleteUserModal, true);
-};
-const closeDeleteUserModal = () => {
-pendingDeleteEmailKey = '';
-pendingDeleteEmailValue = '';
-toggleModalVisibility(deleteUserModal, false);
-};
+const openChangePasswordModal = (emailKey) =>
+modalHandlers.openChangePasswordModal(emailKey, changePasswordModalContext);
+const closeChangePasswordModal = () =>
+modalHandlers.closeChangePasswordModal(changePasswordModalContext);
+const openDeleteUserModal = (emailKey, emailValue) =>
+modalHandlers.openDeleteUserModal(emailKey, emailValue, deleteUserModalContext);
+const closeDeleteUserModal = () =>
+modalHandlers.closeDeleteUserModal(deleteUserModalContext);
 // Usa el nombre del header (botText) o, en su defecto, el id del bot
 const getBotDisplayName = (botId) => {
 const headerLabel = ($('botText')?.textContent || '').trim();
@@ -4587,16 +4567,9 @@ btn.style.borderRadius = radiusVal + 'px';
 renderWidgetIconTargets();
 };
 updateWidgetPreview();
-const closeWidgetModal = () => {
-if (!widgetIconModal) return;
-widgetIconModal.classList.add('hidden');
-widgetIconModal.classList.remove('flex');
-};
-const openWidgetModal = () => {
-if (!widgetIconModal) return;
-widgetIconModal.classList.remove('hidden');
-widgetIconModal.classList.add('flex');
-};
+const widgetModalContext = { modalEl: widgetIconModal };
+const closeWidgetModal = () => modalHandlers.closeWidgetModal(widgetModalContext);
+const openWidgetModal = () => modalHandlers.openWidgetModal(widgetModalContext);
 widgetIconTrigger?.addEventListener('click', openWidgetModal);
 closeWidgetIconModal?.addEventListener('click', closeWidgetModal);
 widgetIconModal?.addEventListener('click', (e) => {
@@ -5625,6 +5598,17 @@ const deleteModalClose = $('closeKnowledgeDeleteModal');
 const deleteModalCancel = $('cancelDeleteKnowledge');
 const deleteModalConfirm = $('confirmDeleteKnowledge');
 const deleteModalTitle = $('deleteKnowledgePageTitle');
+const knowledgeModalContext = {
+modalEl: modal,
+inputEl: modalInput,
+errorEl: modalError,
+statusEl: modalStatus,
+};
+const knowledgeDeleteModalContext = {
+modalEl: deleteModal,
+titleEl: deleteModalTitle,
+translate: t,
+};
 const LIMIT = 10000;
 let pages = [];
 let currentPageId = '';
@@ -5832,21 +5816,8 @@ const clean = sanitizeText(text);
 return clean.length > 16000 ? clean.slice(0, 16000) : clean;
 }
 // 🚫 función formatWithAI eliminada completamente
-function openModal() {
-modal.classList.remove('hidden');
-modal.classList.add('flex');
-modalInput.value = '';
-modalError.classList.add('hidden');
-modalStatus.classList.add('hidden');
-setTimeout(() => modalInput.focus(), 50);
-}
-function closeModal() {
-modal.classList.add('hidden');
-modal.classList.remove('flex');
-modalInput.value = '';
-modalError.classList.add('hidden');
-modalStatus.classList.add('hidden');
-}
+const openModal = () => modalHandlers.openKnowledgeModal(knowledgeModalContext);
+const closeModal = () => modalHandlers.closeKnowledgeModal(knowledgeModalContext);
 function setModalLoading(loading, message) {
 [modalInput, modalConfirm, modalCancel].forEach((el) => {
 if (el) {
@@ -5910,18 +5881,10 @@ setModalLoading(false);
 }
 })
 );
-function openDeleteModal(page) {
-if (!deleteModal || !deleteModalTitle) return;
-deleteModalTitle.textContent = page?.title || t('this page');
-deleteModal.classList.remove('hidden');
-deleteModal.classList.add('flex');
-}
-function closeDeleteModal() {
-if (!deleteModal) return;
-deleteModal.classList.add('hidden');
-deleteModal.classList.remove('flex');
-pageToDeleteId = '';
-}
+const openDeleteModal = (page) =>
+modalHandlers.openKnowledgeDeleteModal(page, knowledgeDeleteModalContext);
+const closeDeleteModal = () =>
+modalHandlers.closeKnowledgeDeleteModal(knowledgeDeleteModalContext, () => { pageToDeleteId = ''; });
 deleteBtn?.addEventListener('click', () => {
 if (deleteBtn.disabled) return;
 const page = pages.find((p) => p.id === currentPageId);
@@ -7265,26 +7228,15 @@ const deleteBtn = $("deleteAutoResponse");
     if (typeModalConfirm) typeModalConfirm.disabled = true;
     typeModalOptions.forEach(option => option.classList.remove("active"));
   };
-  const openTypeModal = () => {
-    if (!typeModal) {
-      responses.push(createEmptyResponse());
-      setActive(responses.length - 1);
-      return;
-    }
-    resetTypeModal();
-    typeModal.classList.remove("hidden");
-    requestAnimationFrame(() => {
-      typeModal.classList.add("show");
-    });
-    typeModal.setAttribute("aria-hidden", "false");
-    if (window.lucide) lucide.createIcons();
+  const typeModalContext = {
+    typeModal,
+    resetTypeModal,
+    responses,
+    createEmptyResponse,
+    setActive,
   };
-  const closeTypeModal = () => {
-    if (!typeModal) return;
-    typeModal.classList.remove("show");
-    typeModal.setAttribute("aria-hidden", "true");
-    setTimeout(() => typeModal.classList.add("hidden"), 220);
-  };
+  const openTypeModal = () => modalHandlers.openTypeModal(typeModalContext);
+  const closeTypeModal = () => modalHandlers.closeTypeModal(typeModalContext);
 function setActive(index) {
 if (index === -1) {
 activeIndex = -1;
