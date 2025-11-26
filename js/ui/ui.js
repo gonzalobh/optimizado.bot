@@ -7260,16 +7260,21 @@ handleAddUrl();
 }
 const scriptAttrs = [`src="https://tomos.bot/embed.js"`, `data-empresa="${EMPRESA}"`];
 scriptAttrs.push(`data-bot="${BOT}"`);
-const code = `<script ${scriptAttrs.join(' ')}><\\/script>`;
+const code = `<script ${scriptAttrs.join(' ')}></script>`;
 const box = $('embedScriptBox');
-box.value = code;
+if (box) {
+box.textContent = code;
 // 🔹 Ajuste automático de altura
 box.style.height = 'auto';
 box.style.height = box.scrollHeight + 'px';
-$('copyEmbedScript').onclick = () => {
+}
+const copyBtn = $('copyEmbedScript');
+if (copyBtn) {
+copyBtn.onclick = () => {
 navigator.clipboard.writeText(code);
 toast(t('Copied'));
 };
+}
 }
 // === Function to initialize Auto Responses tab ===
 function initRespuestas() {
