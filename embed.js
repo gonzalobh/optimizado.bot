@@ -417,6 +417,9 @@
     // 🔄 Comunicación con el iframe
     let ready = false, got = false, currentPosition = 'right', welcomeBubbleDismissed = false;
     let welcomeText = "";
+    let pendingVisibility = null;
+    let positionResolved = false;
+    let positionResolveTimeout = null;
 
     const hideBubble = (permanent = false) => {
       bubble.style.display = "none";
@@ -489,7 +492,21 @@
       isChatOpen = false;
     };
 
-    const applyWidgetPosition = (position) => {
+    const syncVisibility = () => {
+      if (pendingVisibility === null) return;
+      if (!positionResolved) return;
+
+      btn.style.display = pendingVisibility ? "flex" : "none";
+      if (!pendingVisibility) {
+        frame.style.display = "none";
+        hideBubble();
+        return;
+      }
+
+      maybeShowBubble();
+    };
+
+    const applyWidgetPosition = (position, markResolved = false) => {
       const normalized = (position || '').toString().trim().toLowerCase();
       const valid = ['left', 'center', 'right'];
       const finalPos = valid.includes(normalized) ? normalized : 'right';
@@ -497,6 +514,15 @@
       btn.dataset.position = finalPos;
       frame.dataset.position = finalPos;
       bubble.dataset.position = finalPos;
+
+      if (markResolved) {
+        positionResolved = true;
+        if (positionResolveTimeout) {
+          clearTimeout(positionResolveTimeout);
+          positionResolveTimeout = null;
+        }
+        syncVisibility();
+      }
     };
 
     const maybeShowBubble = () => {
@@ -567,6 +593,14 @@
           ready = true;
           frame.contentWindow.postMessage({ action: "getChatButtonIcon" }, "*");
           frame.contentWindow.postMessage({ action: "getChatButtonStatus" }, "*");
+          if (!positionResolved) {
+            if (positionResolveTimeout) clearTimeout(positionResolveTimeout);
+            positionResolveTimeout = setTimeout(() => {
+              positionResolved = true;
+              positionResolveTimeout = null;
+              syncVisibility();
+            }, 500);
+          }
           break;
 
         case "chatButtonIcon":
@@ -611,13 +645,8 @@
 
         case "chatButtonStatus":
           got = true;
-          btn.style.display = d.visible === false ? "none" : "flex";
-          if (d.visible === false) {
-            frame.style.display = "none";
-            hideBubble();
-          } else {
-            maybeShowBubble();
-          }
+          pendingVisibility = d.visible === false ? false : true;
+          syncVisibility();
           break;
 
         case "updateChatButtonColor":
@@ -625,7 +654,7 @@
           break;
 
         case "updateWidgetPosition":
-          applyWidgetPosition(d.position);
+          applyWidgetPosition(d.position, true);
           break;
 
         case "closeChatWindow":
