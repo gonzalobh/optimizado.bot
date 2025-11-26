@@ -343,24 +343,33 @@ let currentUserLeadsEnabled = true;
 let dashboard2KnowledgeChart = null;
 let dashboard2AnswersChart = null;
 let dashboard2LineChart = null;
-const DEFAULT_TAB_KEYS = ['dashboard', 'dashboard2', 'chat', 'mensajes', 'knowledge', 'respuestas', 'prompt', 'leads', 'usuarios'];
-let TAB_KEYS = [...DEFAULT_TAB_KEYS];
-function getInitialTabKey() {
-try {
-const url = new URL(window.location.href);
-const tabParam = (url.searchParams.get('tab') || '').trim();
-if (tabParam && DEFAULT_TAB_KEYS.includes(tabParam)) {
-return tabParam;
-}
-} catch (err) {
-console.warn('No se pudo leer el parámetro de tab en la URL', err);
-}
-return TAB_KEYS[0] || 'dashboard';
-}
-let currentActiveTab = getInitialTabKey();
-const bodyEl = document.body;
-const sidebarEl = document.getElementById('sidebar');
-const toggleSidebarBtn = document.getElementById('toggleSidebarBtn');
+const sidebarState = window.sidebar || {};
+const DEFAULT_TAB_KEYS = sidebarState.DEFAULT_TAB_KEYS || ['dashboard', 'dashboard2', 'chat', 'mensajes', 'knowledge', 'respuestas', 'prompt', 'leads', 'usuarios'];
+const getTabKeys = sidebarState.getTabKeys ? () => sidebarState.getTabKeys() : () => [...DEFAULT_TAB_KEYS];
+const setTabKeys = sidebarState.setTabKeys ? (keys) => sidebarState.setTabKeys(keys) : () => {};
+const getCurrentActiveTab = sidebarState.getCurrentActiveTab ? () => sidebarState.getCurrentActiveTab() : () => (getTabKeys()[0] || 'dashboard');
+const setActiveTab = sidebarState.setActiveTab ? (tab) => sidebarState.setActiveTab(tab) : () => {};
+const initTabs = sidebarState.initTabs ? () => sidebarState.initTabs() : () => {};
+window.sidebarHooks = {
+  onTabActivated(targetTab) {
+    if (targetTab === 'dashboard2') {
+      loadDashboard2Data();
+    }
+    if (targetTab === 'chat') {
+      if (typeof window.__setDefaultChatPanel === 'function') {
+        window.__setDefaultChatPanel();
+      }
+    } else {
+      if (typeof window.__hideHeaderPanel === 'function') {
+        window.__hideHeaderPanel();
+      }
+      if (targetTab === 'prompt') {
+        initPromptTab();
+        loadPromptForCurrentBot({ force: true });
+      }
+    }
+  }
+};
 let promptTabInitialized = false;
 let promptTextareaEl = null;
 let promptSaveBtnEl = null;
@@ -518,51 +527,6 @@ alert('No se pudo guardar el prompt. Inténtalo de nuevo.');
 });
 }
 loadPromptForCurrentBot({ force: true });
-}
-if (sidebarEl && toggleSidebarBtn) {
-const closeSidebar = ({ immediate = false } = {}) => {
-if (window.innerWidth >= 768) {
-sidebarEl.classList.remove('hidden', '-translate-x-full');
-bodyEl.classList.remove('overflow-hidden');
-return;
-}
-bodyEl.classList.remove('overflow-hidden');
-sidebarEl.classList.add('-translate-x-full');
-if (immediate) {
-sidebarEl.classList.add('hidden');
-return;
-}
-sidebarEl.addEventListener('transitionend', function handler(event) {
-if (event.propertyName === 'transform') {
-sidebarEl.classList.add('hidden');
-sidebarEl.removeEventListener('transitionend', handler);
-}
-}, { once: true });
-};
-const openSidebar = () => {
-sidebarEl.classList.remove('hidden');
-requestAnimationFrame(() => {
-sidebarEl.classList.remove('-translate-x-full');
-});
-bodyEl.classList.add('overflow-hidden');
-};
-toggleSidebarBtn.addEventListener('click', () => {
-if (sidebarEl.classList.contains('hidden')) {
-openSidebar();
-} else {
-closeSidebar();
-}
-});
-const handleSidebarOnResize = () => {
-if (window.innerWidth >= 768) {
-sidebarEl.classList.remove('hidden', '-translate-x-full');
-bodyEl.classList.remove('overflow-hidden');
-} else {
-closeSidebar({ immediate: true });
-}
-};
-handleSidebarOnResize();
-window.addEventListener('resize', handleSidebarOnResize);
 }
 const loginErrorEl = $('loginError');
 const defaultLoginErrorMessage = loginErrorEl?.textContent || '';
@@ -3969,32 +3933,34 @@ function applyRoleUI() {
 window.userRole = userRole;
 const shouldShowUsuarios = isGlobalAdmin || isPrimaryAdmin;
 const editorOnly = isLimitedEditor && !shouldShowUsuarios;
-let visibleTabs = DEFAULT_TAB_KEYS.filter((tab) => {
-if (tab === 'usuarios') return shouldShowUsuarios;
-if (tab === 'dashboard2') return userRole === 'editor';
-if (tab === 'prompt' && currentUserPromptEnabled === false) return false;
-if (tab === 'leads' && currentUserLeadsEnabled === false) return false;
+  let visibleTabs = DEFAULT_TAB_KEYS.filter((tab) => {
+    if (tab === 'usuarios') return shouldShowUsuarios;
+    if (tab === 'dashboard2') return userRole === 'editor';
+    if (tab === 'prompt' && currentUserPromptEnabled === false) return false;
+    if (tab === 'leads' && currentUserLeadsEnabled === false) return false;
 if (editorOnly && tab === 'dashboard') return false;
 return true;
 });
 if (!visibleTabs.length) {
 visibleTabs = ['chat'];
 }
-TAB_KEYS = visibleTabs;
-if (!TAB_KEYS.includes(currentActiveTab)) {
-setActiveTab(TAB_KEYS[0] || 'chat');
-}
-DEFAULT_TAB_KEYS.forEach((tab) => {
-const btn = document.querySelector(`.sidebar-btn[data-tab="${tab}"]`);
-if (btn) {
-const isVisible = TAB_KEYS.includes(tab);
-btn.classList.toggle('hidden', !isVisible);
-}
-const section = document.getElementById(`tab-${tab}`);
-if (section && !TAB_KEYS.includes(tab)) {
-section.classList.add('hidden');
-}
-});
+  setTabKeys(visibleTabs);
+  const tabKeys = getTabKeys();
+  const currentActiveTab = getCurrentActiveTab();
+  if (!tabKeys.includes(currentActiveTab)) {
+    setActiveTab(tabKeys[0] || 'chat');
+  }
+  DEFAULT_TAB_KEYS.forEach((tab) => {
+    const btn = document.querySelector(`.sidebar-btn[data-tab="${tab}"]`);
+    if (btn) {
+      const isVisible = tabKeys.includes(tab);
+      btn.classList.toggle('hidden', !isVisible);
+    }
+    const section = document.getElementById(`tab-${tab}`);
+    if (section && !tabKeys.includes(tab)) {
+      section.classList.add('hidden');
+    }
+  });
 const usuariosBtn = $('usuariosTabButton');
 if (usuariosBtn) {
 usuariosBtn.classList.toggle('hidden', !shouldShowUsuarios);
@@ -4033,57 +3999,15 @@ botSelect.disabled = false;
 if (typeof lucide !== 'undefined' && lucide?.createIcons) {
 lucide.createIcons();
 }
-const desiredTab = TAB_KEYS.includes(currentActiveTab) ? currentActiveTab : (TAB_KEYS[0] || 'chat');
-setActiveTab(desiredTab);
-}
-let tabsInitialized = false;
-function updateUrlTabParam(tab) {
-try {
-const url = new URL(window.location.href);
-url.searchParams.set('tab', tab);
-window.history.replaceState({}, '', url.toString());
-} catch (err) {
-console.warn('No se pudo actualizar el parámetro de tab en la URL', err);
-}
-}
-function setActiveTab(tab) {
-const fallbackTab = TAB_KEYS.includes(tab) ? tab : (TAB_KEYS[0] || 'dashboard');
-const targetTab = fallbackTab;
-currentActiveTab = targetTab;
-updateUrlTabParam(targetTab);
-$$('.sidebar-btn').forEach(btn => {
-const btnTab = btn.getAttribute('data-tab');
-btn.classList.toggle('active', btnTab === targetTab);
-});
-DEFAULT_TAB_KEYS.forEach(key => {
-const section = document.getElementById(`tab-${key}`);
-if (section) {
-const shouldShow = key === targetTab && TAB_KEYS.includes(key);
-section.classList.toggle('hidden', !shouldShow);
-}
-});
-if (targetTab === 'dashboard2') {
-loadDashboard2Data();
-}
-if (targetTab === 'chat') {
-if (typeof window.__setDefaultChatPanel === 'function') {
-window.__setDefaultChatPanel();
-}
-} else {
-if (typeof window.__hideHeaderPanel === 'function') {
-window.__hideHeaderPanel();
-}
-if (targetTab === 'prompt') {
-initPromptTab();
-loadPromptForCurrentBot({ force: true });
-}
-}
+  const updatedActiveTab = getCurrentActiveTab();
+  const desiredTab = tabKeys.includes(updatedActiveTab) ? updatedActiveTab : (tabKeys[0] || 'chat');
+  setActiveTab(desiredTab);
 }
 function showAppView() {
-document.querySelector('header')?.classList.remove('hidden');
-const sidebar = document.getElementById('sidebar');
-if (sidebar) {
-document.getElementById("sidebar").classList.remove("hidden", "md:hidden");
+  document.querySelector('header')?.classList.remove('hidden');
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+  document.getElementById("sidebar").classList.remove("hidden", "md:hidden");
 }
 $('headerSpacer')?.classList.remove('hidden');
 $('login').classList.add('hidden');
@@ -4115,24 +4039,24 @@ if (dashboard2AnswersChart) {
 dashboard2AnswersChart.destroy();
 dashboard2AnswersChart = null;
 }
-if (dashboard2LineChart) {
-dashboard2LineChart.destroy();
-dashboard2LineChart = null;
-}
-TAB_KEYS = [...DEFAULT_TAB_KEYS];
-applyRoleUI();
-document.querySelector('header')?.classList.add('hidden');
-const sidebar = document.getElementById('sidebar');
-if (sidebar) {
-sidebar.classList.add('hidden', 'md:hidden');
+  if (dashboard2LineChart) {
+    dashboard2LineChart.destroy();
+    dashboard2LineChart = null;
+  }
+  setTabKeys([...DEFAULT_TAB_KEYS]);
+  applyRoleUI();
+  document.querySelector('header')?.classList.add('hidden');
+  const sidebar = document.getElementById('sidebar');
+  if (sidebar) {
+  sidebar.classList.add('hidden', 'md:hidden');
 }
 $('headerSpacer')?.classList.add('hidden');
-$('login').classList.remove('hidden');
-$('tabs').classList.add('hidden');
-$('btnLogout').classList.add('hidden');
-document.body.classList.add('login-view');
-document.body.classList.remove('app-view');
-setActiveTab('dashboard');
+  $('login').classList.remove('hidden');
+  $('tabs').classList.add('hidden');
+  $('btnLogout').classList.add('hidden');
+  document.body.classList.add('login-view');
+  document.body.classList.remove('app-view');
+  setActiveTab('dashboard');
 }
 async function canWrite(fn) {
 await refreshPermissions();
@@ -4304,24 +4228,6 @@ showLoginView();
 }
 finishInit();
 });
-// ====== Tabs ======
-function initTabs() {
-if (tabsInitialized) {
-const fallback = TAB_KEYS.includes(currentActiveTab) ? currentActiveTab : (TAB_KEYS[0] || 'dashboard');
-setActiveTab(fallback);
-return;
-}
-tabsInitialized = true;
-const initialTab = TAB_KEYS.includes(currentActiveTab) ? currentActiveTab : (TAB_KEYS[0] || 'dashboard');
-setActiveTab(initialTab);
-$$('.sidebar-btn').forEach(btn => {
-btn.addEventListener('click', () => {
-const tab = btn.getAttribute('data-tab');
-if (!tab) return;
-setActiveTab(tab);
-});
-});
-}
 // ====== Timezones ======
 function getTimeZones(){
 return [
