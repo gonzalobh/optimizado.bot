@@ -1,0 +1,32 @@
+body.login-view {
+  background-color: #f3f4f6;
+}
+body.login-view main {
+  align-items: center;
+    margin-left: 0 !important;
+  transition: none !important;
+}
+body.login-view #appContainer {
+  padding-top: 3rem;
+}
+#login {
+  width: 100%;
+}
+@media (max-width: 768px) {
+  #appContainer {
+    padding-left: 1.25rem;
+    padding-right: 1.25rem;
+  }
+}
+@media (max-width: 640px) {
+  #login {
+    margin-top: 2.5rem;
+    padding: 1.75rem;
+  }
+  #login img {
+    width: 88px;
+  }
+  #login input {
+    font-size: 16px;
+  }
+}

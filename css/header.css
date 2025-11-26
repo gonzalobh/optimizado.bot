@@ -1,0 +1,33 @@
+header .fixed-logo {
+    position: absolute;
+    left: 10px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 38px;
+    width: auto;
+    border-radius: 10px;
+    object-fit: contain;
+    z-index: 50;
+  }
+#autoResponseTypeModalPanel {
+  margin-left: auto;
+  margin-right: 0;
+  transform: none;
+  position: relative;
+  z-index: 20;
+  height: 36px;
+}
+#headerControls {
+  gap: 8px;
+}
+#languageSelect {
+  min-width: 96px;
+  height: 36px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+#botSelect,
+#botSelect option {
+  background-color: #fff !important;
+  color: #000 !important;
+}
