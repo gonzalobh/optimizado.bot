@@ -420,6 +420,7 @@
     let pendingVisibility = null;
     let positionResolved = false;
     let positionResolveTimeout = null;
+    let pendingBubble = false;
 
     const hideBubble = (permanent = false) => {
       bubble.style.display = "none";
@@ -522,12 +523,21 @@
           positionResolveTimeout = null;
         }
         syncVisibility();
+        if (pendingBubble) {
+          maybeShowBubble();
+        }
       }
     };
 
     const maybeShowBubble = () => {
       if (!welcomeText || welcomeBubbleDismissed) return;
       if (btn.style.display === "none") return;
+      if (!positionResolved) {
+        pendingBubble = true;
+        return;
+      }
+
+      pendingBubble = false;
       bubbleMessage.textContent = welcomeText;
       bubble.style.display = "flex";
       bubble.dataset.position = currentPosition;
@@ -599,6 +609,9 @@
               positionResolved = true;
               positionResolveTimeout = null;
               syncVisibility();
+              if (pendingBubble) {
+                maybeShowBubble();
+              }
             }, 500);
           }
           break;
