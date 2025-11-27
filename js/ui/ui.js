@@ -2410,6 +2410,8 @@ console.error('No se pudo preparar el bot seleccionado', err);
 }
 }
 let botSelectorInitialized = false;
+let botSelectorCachedBots = {};
+let botSelectorRebuild = null;
 let usersTabInitialized = false;
 let userTabBotsCache = {};
 let userManagementEditorsRef = null;
@@ -2418,13 +2420,13 @@ let userManagementUsersRef = null;
 let userManagementUsersListener = null;
 let currentManagedBotId = '';
 let currentBotUsersMeta = {};
-function initBotSelector() {
-if (botSelectorInitialized) return;
-const select = $('botSelect');
-if (!select) return;
-botSelectorInitialized = true;
-let customBotDropdown = null;
-const ensureCustomBotDropdown = () => {
+async function initBotSelector() {
+  if (botSelectorInitialized) return;
+  const select = $('botSelect');
+  if (!select) return;
+  botSelectorInitialized = true;
+  let customBotDropdown = null;
+  const ensureCustomBotDropdown = () => {
 if (customBotDropdown) return customBotDropdown;
 const wrapper = document.createElement('div');
 wrapper.className = 'relative min-w-[150px]';
@@ -2582,16 +2584,27 @@ const newBotClose = $('closeNewBotModal');
 const newBotModeRadios = Array.from(document.querySelectorAll('input[name="newBotMode"]'));
 const newBotModeCards = newBotModeRadios.map((radio) => radio.closest('[data-mode-card]'));
 const confirmBtnDefaultHTML = newBotConfirm ? newBotConfirm.innerHTML : '';
-const storageKey = `bot:${EMPRESA}`;
-const botsRef = getBotsRef();
-let cachedBots = {};
+  const storageKey = `bot:${EMPRESA}`;
+  const botsRef = getBotsRef();
 let creatingNewBot = false;
-const rebuildBotOptions = (activeId = BOT) => {
-if (!select) return;
-const entries = Object.entries(cachedBots);
-select.innerHTML = '';
-select.disabled = false;
-if (!entries.length) {
+  const getVisibleBotEntries = () => {
+    const entries = Object.entries(botSelectorCachedBots || {});
+    const isAdmin = isGlobalAdmin || isPrimaryAdmin || isCompanyAdmin;
+    if (isAdmin) return entries;
+    if (allowedEditorBots && allowedEditorBots.size) {
+      return entries.filter(([id]) => allowedEditorBots.has(id));
+    }
+    if (!entries.length && BOT) return [[BOT, null]];
+    const fallbackEntries = entries.filter(([id]) => id === BOT);
+    return fallbackEntries.length ? fallbackEntries : [[BOT, botSelectorCachedBots[BOT] || null]];
+  };
+
+  const rebuildBotOptions = (activeId = BOT) => {
+    if (!select) return;
+    const entries = getVisibleBotEntries();
+    select.innerHTML = '';
+    select.disabled = false;
+    if (!entries.length) {
 const option = document.createElement('option');
 option.value = BOT;
 option.textContent = BOT;
@@ -2602,10 +2615,10 @@ syncCustomBotDropdownState();
 updateBotLabels(BOT);
 return;
 }
-entries
-.sort((a, b) => {
-const nameA = (a[1]?.config?.hotelName || a[0] || '').toString().toLowerCase();
-const nameB = (b[1]?.config?.hotelName || b[0] || '').toString().toLowerCase();
+    entries
+      .sort((a, b) => {
+        const nameA = (a[1]?.config?.hotelName || a[0] || '').toString().toLowerCase();
+        const nameB = (b[1]?.config?.hotelName || b[0] || '').toString().toLowerCase();
 if (nameA < nameB) return -1;
 if (nameA > nameB) return 1;
 return 0;
@@ -2616,17 +2629,21 @@ option.value = id;
 option.textContent = data?.config?.hotelName || id;
 select.appendChild(option);
 });
-if (!cachedBots[activeId]) {
-const fallbackOption = document.createElement('option');
-fallbackOption.value = activeId;
-fallbackOption.textContent = activeId;
+    if (!botSelectorCachedBots[activeId]) {
+      const fallbackOption = document.createElement('option');
+      fallbackOption.value = activeId;
+      fallbackOption.textContent = activeId;
 select.appendChild(fallbackOption);
 }
 select.value = activeId;
-const activeBot = cachedBots[activeId];
-updateBotLabels(activeBot?.config?.hotelName || activeId);
-syncCustomBotDropdownState();
-};
+    const activeBot = botSelectorCachedBots[activeId];
+    updateBotLabels(activeBot?.config?.hotelName || activeId);
+    if (entries.length === 1) {
+      select.disabled = true;
+    }
+    syncCustomBotDropdownState();
+  };
+  botSelectorRebuild = rebuildBotOptions;
 const getSelectedNewBotMode = () => {
 const active = newBotModeRadios.find((radio) => radio.checked && !radio.disabled);
 return active ? active.value : 'new';
@@ -2677,7 +2694,7 @@ return;
 }
 let candidate = base;
 let suffix = 2;
-while (cachedBots[candidate]) {
+  while (botSelectorCachedBots[candidate]) {
 candidate = `${base}-${suffix++}`;
 }
 newBotSlugPreview.textContent = candidate;
@@ -2747,7 +2764,7 @@ return;
 setNewBotLoading(true);
 let candidate = baseSlug;
 let suffix = 2;
-while (cachedBots[candidate]) {
+  while (botSelectorCachedBots[candidate]) {
 candidate = `${baseSlug}-${suffix++}`;
 }
 let payload;
@@ -2776,7 +2793,7 @@ delete payload.config.connections;
 delete payload.config.mesas;
 }
 await botsRef.child(candidate).set(payload);
-cachedBots = { ...cachedBots, [candidate]: payload };
+    botSelectorCachedBots = { ...botSelectorCachedBots, [candidate]: payload };
 updateNewBotSlugPreview();
 rebuildBotOptions(candidate);
 localStorage.setItem(storageKey, candidate);
@@ -2850,11 +2867,15 @@ createBtn.disabled = true;
 updateBotLabels(BOT);
 return;
 }
-botsRef.on('value', (snap) => {
-cachedBots = snap.val() || {};
-updateNewBotSlugPreview();
-rebuildBotOptions(BOT);
-});
+  const initialSnap = await botsRef.once('value');
+  botSelectorCachedBots = initialSnap.val() || {};
+  updateNewBotSlugPreview();
+  rebuildBotOptions(BOT);
+  botsRef.on('value', (snap) => {
+    botSelectorCachedBots = snap.val() || {};
+    updateNewBotSlugPreview();
+    rebuildBotOptions(BOT);
+  });
 select.addEventListener('change', (event) => {
 syncCustomBotDropdownState();
 const nextBot = event.target.value;
@@ -4027,12 +4048,15 @@ userRole = 'editor';
 } else {
 userRole = 'viewer';
 }
-const permBannerA = document.getElementById('permBannerA');
-const permBannerS = document.getElementById('permBannerS');
-if (permBannerA) permBannerA.classList.toggle('hidden', canWriteFlag);
-if (permBannerS) permBannerS.classList.toggle('hidden', canWriteFlag);
-applyPromptPermissionState();
-applyRoleUI();
+  const permBannerA = document.getElementById('permBannerA');
+  const permBannerS = document.getElementById('permBannerS');
+  if (permBannerA) permBannerA.classList.toggle('hidden', canWriteFlag);
+  if (permBannerS) permBannerS.classList.toggle('hidden', canWriteFlag);
+  applyPromptPermissionState();
+  applyRoleUI();
+  if (typeof botSelectorRebuild === 'function') {
+    botSelectorRebuild(currentBot || BOT);
+  }
 }
 function setWriteEnabled(enabled) {
 const ids = [
@@ -4384,24 +4408,23 @@ console.warn(t('⚠ No company found for this email, using previous value:'), EM
 }
 const currentUrl = new URL(window.location.href);
 currentUrl.searchParams.set('empresa', EMPRESA);
-currentUrl.searchParams.set('bot', BOT);
-window.history.replaceState({}, '', currentUrl);
-await resolveBotStoragePaths();
-await ensureBotDataExists();
-await updateUserLastAccess(EMPRESA, BOT, rawEmail);
-showAppView();
-initBotSelector();
-await initAll();
-const live = document.getElementById('liveChatFrame');
-if (live && EMPRESA) {
-const chatUrl = new URL('https://tomos.bot/chat.html');
-chatUrl.searchParams.set('empresa', EMPRESA);
+  currentUrl.searchParams.set('bot', BOT);
+  window.history.replaceState({}, '', currentUrl);
+  await resolveBotStoragePaths();
+  await ensureBotDataExists();
+  await updateUserLastAccess(EMPRESA, BOT, rawEmail);
+  await initAll();
+  const live = document.getElementById('liveChatFrame');
+  if (live && EMPRESA) {
+    const chatUrl = new URL('https://tomos.bot/chat.html');
+    chatUrl.searchParams.set('empresa', EMPRESA);
 chatUrl.searchParams.set('bot', BOT);
-live.src = chatUrl.toString();
-console.log(t('💬 Live chat loaded for'), EMPRESA, BOT);
-}
+    live.src = chatUrl.toString();
+    console.log(t('💬 Live chat loaded for'), EMPRESA, BOT);
+  }
+  showAppView();
 } else {
-showLoginView();
+  showLoginView();
 }
 finishInit();
 });
@@ -4484,16 +4507,16 @@ return [
 }
 // ====== Init All ======
 async function initAll(){
-lucide.createIcons();
-initBotSelector();
-initLanguageSelector(); // <-- 🔥 nuevo
-initTabs();
-initDashboard();
-applyPreview();
-await refreshPermissions();
-initApariencia();
-initSettingsTab();
-initMensajes();
+  lucide.createIcons();
+  await refreshPermissions();
+  await initBotSelector();
+  initLanguageSelector(); // <-- 🔥 nuevo
+  initTabs();
+  initDashboard();
+  applyPreview();
+  initApariencia();
+  initSettingsTab();
+  initMensajes();
 initLeadsTab();
 initKnowledge();
 initIntegration();
