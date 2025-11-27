@@ -577,11 +577,12 @@ const value = promptTextareaEl.value || '';
 try {
 await ref.set(value);
 lastPromptLoadedKey = `${EMPRESA || ''}::${BOT || ''}`;
-if (typeof toast === 'function') {
-toast('Prompt guardado correctamente');
-} else {
-alert('Prompt guardado correctamente');
-}
+        const savedMessage = t('saved');
+        if (typeof toast === 'function') {
+          toast(savedMessage);
+        } else {
+          alert(savedMessage);
+        }
 } catch (err) {
 console.error('No se pudo guardar el prompt del sistema', err);
 alert('No se pudo guardar el prompt. Inténtalo de nuevo.');
@@ -1322,10 +1323,10 @@ const configData = configSnap.exists() ? configSnap.val() : null;
 const botData = botSnap && typeof botSnap.exists === 'function' && botSnap.exists()
 ? botSnap.val()
 : dashboardBotsData?.[botId] || null;
-if (configData === null && botData === null) {
-toast('⚠ No se encontró la configuración del bot');
-return;
-}
+  if (configData === null && botData === null) {
+    toast(t('⚠ Bot configuration not found'));
+    return;
+  }
 const newId = generateDashboardCloneId(botId);
 const updates = {};
 if (configData !== null) {
@@ -1335,10 +1336,10 @@ if (botData !== null) {
 updates[`empresas/${EMPRESA}/bots/${newId}`] = botData;
 }
 await firebase.database().ref().update(updates);
-toast('✔ Bot clonado');
+  toast(t('✔ Bot cloned'));
 } catch (err) {
-console.error('No se pudo clonar el bot', err);
-toast('⚠ No se pudo clonar el bot');
+  console.error('No se pudo clonar el bot', err);
+  toast(t('⚠ Failed to clone bot'));
 } finally {
 if (trigger) {
 trigger.disabled = false;
@@ -1348,10 +1349,10 @@ trigger.classList.remove('opacity-50', 'pointer-events-none');
 }
 function openDashboardDeleteModal(botId, trigger) {
 if (!botId) return;
-if (!canWriteFlag) {
-toast('⚠ No tienes permisos para eliminar bots');
-return;
-}
+  if (!canWriteFlag) {
+    toast(t('⚠ You do not have permission to delete bots'));
+    return;
+  }
 const modal = $('dashboardDeleteModal');
 if (!modal) {
 handleDashboardDelete(botId, trigger);
@@ -1382,10 +1383,10 @@ trigger.focus();
 }
 async function handleDashboardDelete(botId, trigger) {
 if (!botId) return false;
-if (!canWriteFlag) {
-toast('⚠ No tienes permisos para eliminar bots');
-return false;
-}
+  if (!canWriteFlag) {
+    toast(t('⚠ You do not have permission to delete bots'));
+    return false;
+  }
 if (trigger) {
 trigger.disabled = true;
 trigger.classList.add('opacity-50', 'pointer-events-none');
@@ -1395,7 +1396,7 @@ const updates = {};
 updates[`empresas/${EMPRESA}/config/bots/${botId}`] = null;
 updates[`empresas/${EMPRESA}/bots/${botId}`] = null;
 await firebase.database().ref().update(updates);
-toast('✔ Bot eliminado');
+    toast(t('✔ Bot deleted'));
 if (dashboardSelectedBotId === botId) {
 dashboardSelectedBotId = '__all__';
 populateDashboardFilterOptions();
@@ -1404,7 +1405,7 @@ scheduleDashboardRefresh();
 return true;
 } catch (err) {
 console.error('No se pudo eliminar el bot', err);
-toast('⚠ No se pudo eliminar el bot');
+    toast(t('⚠ Failed to delete bot'));
 return false;
 } finally {
 if (trigger) {
@@ -2787,7 +2788,7 @@ window.location.href = url.toString();
 console.error('No se pudo crear el bot', err);
 reportNewBotError('No se pudo crear el bot. Inténtalo de nuevo.');
 if (typeof toast === 'function') {
-toast('⚠ Could not create the bot');
+toast(t('⚠ Could not create the bot'));
 }
 } finally {
 creatingNewBot = false;
@@ -3903,7 +3904,7 @@ await Promise.all(pending);
 toast(translationManager.translate("saved"));
 } catch (err) {
 console.error('No se pudo aplicar el template', err);
-toast('⚠ No se pudo aplicar el template');
+toast(t('⚠ Could not apply the template'));
 } finally {
 isApplyingTemplate = false;
 updateActiveTemplateIndicator();
@@ -6845,13 +6846,13 @@ if (!confirm('¿Eliminar esta conversación?')) return;
 const botId = getActiveMessagesBot?.() || BOT;
 firebase.database().ref(`empresas/${EMPRESA}/bots/${botId}/conversaciones/${chat.chatId}`).remove()
 .then(() => {
-removeConversationLocal(chat.chatId);
-toast('Conversación eliminada');
-})
-.catch((err) => {
-console.warn('No se pudo eliminar la conversación', err);
-toast('No se pudo eliminar la conversación');
-});
+        removeConversationLocal(chat.chatId);
+        toast(t('Conversation deleted'));
+      })
+      .catch((err) => {
+        console.warn('No se pudo eliminar la conversación', err);
+        toast(t('Could not delete the conversation'));
+      });
 });
 actions.appendChild(deleteBtn);
 headerRow.append(infoCol, actions);
@@ -7064,18 +7065,18 @@ removeConversationLocal(childSnap.key);
 }));
 }
 });
-if (!removals.length) {
-toast('No se encontraron conversaciones antiguas');
-return Promise.resolve();
-}
-return Promise.allSettled(removals).then(() => {
-toast('Conversaciones antiguas eliminadas');
-});
-})
-.catch((err) => {
-console.warn('No se pudieron eliminar las conversaciones antiguas', err);
-toast('No se pudieron eliminar las conversaciones antiguas');
-})
+      if (!removals.length) {
+        toast(t('No archived conversations found'));
+        return Promise.resolve();
+      }
+      return Promise.allSettled(removals).then(() => {
+        toast(t('Archived conversations deleted'));
+      });
+    })
+    .catch((err) => {
+      console.warn('No se pudieron eliminar las conversaciones antiguas', err);
+      toast(t('Could not delete archived conversations'));
+    })
 .finally(() => {
 deleteOldBtn.disabled = false;
 deleteOldBtn.classList.remove('opacity-60');
@@ -7279,15 +7280,15 @@ renderAllowedUrls();
 }
 const handleAddUrl = async () => {
 if (!allowedUrlsRef || !allowedUrlInput) return;
-const value = normalizeOrigin(allowedUrlInput.value.trim());
-if (!value) {
-toast('Ingresa una URL válida');
-return;
-}
-if (allowedUrls.includes(value)) {
-toast('Este sitio ya está permitido');
-return;
-}
+  const value = normalizeOrigin(allowedUrlInput.value.trim());
+  if (!value) {
+    toast(t('Enter a valid URL'));
+    return;
+  }
+  if (allowedUrls.includes(value)) {
+    toast(t('This site is already allowed'));
+    return;
+  }
 allowedUrls.push(value);
 allowedUrlInput.value = '';
 await canWrite(async () => {
