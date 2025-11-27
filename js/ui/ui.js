@@ -6380,24 +6380,23 @@ renderActionRow();
 });
 }
 function initMensajes() {
-  const listEl = $('messagesList');
-  const botSelect = $('messagesBotFilter');
-  const searchInput = $('messagesSearchInput');
-  const emptyState = $('messagesEmpty');
-  const detailEl = $('messagesDetail');
-  const placeholderEl = $('messagesPlaceholder');
-  const headerEl = $('messagesConversationHeader');
-  const userNameEl = $('messagesUserName');
-  const userLocationEl = $('messagesUserLocation');
-  const userOriginEl = $('messagesUserOrigin');
-  const chatHeaderNameEl = document.getElementById('chatHeaderName');
-  const updatedEl = $('messagesUpdatedAt');
-  const deleteOldBtn = $('deleteOldMessages');
-  const ipLocationCache = new Map();
-  if (!listEl || !detailEl || !placeholderEl) {
-    setTimeout(initMensajes, 400);
-    return;
-  }
+const listEl = $('messagesList');
+const botSelect = $('messagesBotFilter');
+const searchInput = $('messagesSearchInput');
+const emptyState = $('messagesEmpty');
+const detailEl = $('messagesDetail');
+const placeholderEl = $('messagesPlaceholder');
+const headerEl = $('messagesConversationHeader');
+const userNameEl = $('messagesUserName');
+const userLocationEl = $('messagesUserLocation');
+const chatHeaderNameEl = document.getElementById('chatHeaderName');
+const updatedEl = $('messagesUpdatedAt');
+const deleteOldBtn = $('deleteOldMessages');
+const ipLocationCache = new Map();
+if (!listEl || !detailEl || !placeholderEl) {
+setTimeout(initMensajes, 400);
+return;
+}
 const loadMoreWrapper = document.createElement('div');
 loadMoreWrapper.className = 'pt-2';
 const loadMoreBtn = document.createElement('button');
@@ -6646,25 +6645,21 @@ messagesActiveDetailRef = ref;
 messagesActiveDetailHandler = handler;
 }
 function resetConversationView() {
-  detachActiveConversationListener();
-  messagesSelectedChatId = null;
-  detailEl.innerHTML = '';
-  detailEl.classList.add('hidden');
-  placeholderEl.classList.remove('hidden');
-  if (headerEl) headerEl.classList.add('hidden');
-  if (userNameEl) userNameEl.textContent = '';
-  if (userLocationEl) {
-    userLocationEl.textContent = '';
-    userLocationEl.classList.add('hidden');
-  }
-  if (userOriginEl) {
-    userOriginEl.textContent = '';
-    userOriginEl.classList.add('hidden');
-  }
-  if (updatedEl) {
-    updatedEl.textContent = '';
-    updatedEl.classList.add('hidden');
-  }
+detachActiveConversationListener();
+messagesSelectedChatId = null;
+detailEl.innerHTML = '';
+detailEl.classList.add('hidden');
+placeholderEl.classList.remove('hidden');
+if (headerEl) headerEl.classList.add('hidden');
+if (userNameEl) userNameEl.textContent = '';
+if (userLocationEl) {
+userLocationEl.textContent = '';
+userLocationEl.classList.add('hidden');
+}
+if (updatedEl) {
+updatedEl.textContent = '';
+updatedEl.classList.add('hidden');
+}
 }
 function renderConversationMessages(data = {}) {
 const entries = Object.entries(data || {}).sort((a, b) => {
@@ -6701,98 +6696,20 @@ detailEl.appendChild(row);
 detailEl.scrollTop = detailEl.scrollHeight;
 }
 function updateHeader(meta = {}, chatId = messagesSelectedChatId) {
-  const displayName = (meta.userName || meta.name || '').trim() || 'Guest';
-  if (userNameEl) userNameEl.textContent = displayName;
-  if (chatHeaderNameEl) chatHeaderNameEl.textContent = displayName;
-  if (userLocationEl) {
-    userLocationEl.textContent = '';
-    userLocationEl.classList.add('hidden');
-  }
-  if (userOriginEl) {
-    userOriginEl.textContent = '—';
-    userOriginEl.classList.remove('hidden');
-  }
-  updateHeaderLocation(meta, displayName, chatId);
-  updateHeaderOrigin(meta, chatId);
-  if (updatedEl) {
-    const timestamp = Number(meta.updatedAt ?? meta.timestamp ?? meta.lastUpdated ?? 0);
-    const formatted = formatTimestamp(timestamp);
-    updatedEl.textContent = formatted;
-    updatedEl.classList.toggle('hidden', !formatted);
-  }
+const displayName = (meta.userName || meta.name || '').trim() || 'Guest';
+if (userNameEl) userNameEl.textContent = displayName;
+if (chatHeaderNameEl) chatHeaderNameEl.textContent = displayName;
+if (userLocationEl) {
+userLocationEl.textContent = '';
+userLocationEl.classList.add('hidden');
 }
-
-function extractConversationOrigin(meta = {}) {
-  const merged = { ...meta, ...(meta.meta || {}) };
-  const candidates = [
-    merged.origin,
-    merged.referer,
-    merged.referrer,
-    merged.source,
-    merged.url,
-    merged.pageUrl,
-    merged.page_url,
-    merged.website,
-    merged.site,
-    merged.host,
-    merged.hostname,
-    merged.domain,
-    merged.page?.origin,
-    merged.page?.url,
-    merged.page
-  ].filter(Boolean);
-  const normalizeDomain = (value) => {
-    if (!value) return '';
-    const raw = value.toString().trim();
-    if (!raw) return '';
-    const cleaned = raw.replace(/^https?:\/\//i, '').replace(/^www\./i, '');
-    try {
-      const url = raw.startsWith('http') ? new URL(raw) : new URL(`https://${raw}`);
-      return url.hostname.replace(/^www\./i, '').trim() || cleaned.split('/')[0] || '';
-    } catch (err) {
-      return cleaned.split('/')[0] || '';
-    }
-  };
-  for (const candidate of candidates) {
-    const domain = normalizeDomain(candidate);
-    if (domain) return domain;
-  }
-  return '';
+updateHeaderLocation(meta, displayName, chatId);
+if (updatedEl) {
+const timestamp = Number(meta.updatedAt ?? meta.timestamp ?? meta.lastUpdated ?? 0);
+const formatted = formatTimestamp(timestamp);
+updatedEl.textContent = formatted;
+updatedEl.classList.toggle('hidden', !formatted);
 }
-
-async function updateHeaderOrigin(meta = {}, chatId = messagesSelectedChatId) {
-  const setOrigin = (value) => {
-    if (!userOriginEl) return;
-    const text = (value && value.trim()) ? value.trim() : '—';
-    userOriginEl.textContent = text;
-    userOriginEl.classList.remove('hidden');
-  };
-
-  const fromSnapshot = extractConversationOrigin(meta);
-  if (fromSnapshot) {
-    setOrigin(fromSnapshot);
-    return;
-  }
-
-  const activeChatId = chatId || messagesSelectedChatId;
-  if (!activeChatId) {
-    setOrigin('');
-    return;
-  }
-
-  const botId = getActiveMessagesBot?.() || BOT;
-  try {
-    const snap = await firebase.database().ref(`empresas/${EMPRESA}/bots/${botId}/conversaciones/${activeChatId}/meta`).once('value');
-    if (!snap.exists()) {
-      setOrigin('');
-      return;
-    }
-    const domain = extractConversationOrigin(snap.val() || {});
-    setOrigin(domain);
-  } catch (err) {
-    console.warn('No se pudo obtener el origen de la conversación', err);
-    setOrigin('');
-  }
 }
 function renderConversations() {
 if (!listEl) return;
