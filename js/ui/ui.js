@@ -48,7 +48,6 @@ if (!node || !window.translationManager) return;
 translationManager.register(node, key, target, options);
 };
 if (window.translationManager) {
-const loginTitleEl = document.getElementById('loginTitle');
 const loginEmailLabelEl = document.getElementById('emailLabel');
 const loginEmailInputEl = document.getElementById('emailInput');
 const loginPasswordLabelEl = document.getElementById('passwordLabel');
@@ -58,7 +57,6 @@ const loginErrorTargetEl = document.getElementById('loginError');
 const googleLoginTextEl = document.getElementById('googleLoginText');
 const loginSeparatorTextEl = document.getElementById('loginSeparatorText');
 const togglePasswordSrTextEl = document.getElementById('togglePasswordSrText');
-registerTranslationTarget(loginTitleEl, 'Admin Access');
 registerTranslationTarget(loginEmailLabelEl, 'Email');
 registerTranslationTarget(loginEmailInputEl, 'admin@company.com', 'placeholder');
 registerTranslationTarget(loginPasswordLabelEl, 'Password');
