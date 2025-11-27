@@ -6578,10 +6578,13 @@ return null;
     const flag = (location?.flag || '').trim();
     if (!country) return '';
     const region = (location?.region || '').trim();
-    const regionText = region ? `, ${region}` : '';
-    const cityText = city ? `, ${city}` : '';
-    const flagText = flag ? `${flag} ` : '';
-    return `${flagText}${country}${regionText}${cityText}`.trim();
+    const parts = [];
+    if (city) parts.push(city);
+    if (region) parts.push(region);
+    parts.push(country);
+    const locationText = parts.join(', ');
+    const flagText = flag ? ` ${flag}` : '';
+    return `${locationText}${flagText}`.trim();
   }
 
   function formatOriginDisplay(origin) {
