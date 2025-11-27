@@ -76,7 +76,7 @@
         <i data-lucide="bot" class="w-4 h-4"></i>
         <span>Probar Bot</span>
       </button>
-      <select id="languageSelect" class="border border-gray-200 rounded-md px-2 py-1 text-xs leading-tight bg-white focus:outline-none focus:ring-1 focus:ring-black/40 notranslate h-9 min-w-[96px]">
+      <select id="languageSelect" data-language-select class="border border-gray-200 rounded-md px-2 py-1 text-xs leading-tight bg-white focus:outline-none focus:ring-1 focus:ring-black/40 notranslate h-9 min-w-[96px]">
         <option value="en">EN</option>
         <option value="fr">FR</option>
         <option value="es">ES</option>
@@ -151,12 +151,23 @@
 <div id="appContainer" class="w-full max-w-6xl pt-8 pb-8 px-4 sm:px-6 lg:px-8">
               <!-- Login card -->
 <div id="login" class="hidden login-card w-full max-w-md mx-auto text-center relative">
+  <div class="login-language-switcher" aria-live="polite">
+    <label for="loginLanguageSelect" class="sr-only">Language</label>
+    <select id="loginLanguageSelect" data-language-select class="login-language-select">
+      <option value="en">EN</option>
+      <option value="fr">FR</option>
+      <option value="es">ES</option>
+      <option value="de">DE</option>
+      <option value="pt">PT</option>
+    </select>
+  </div>
   <img src="logo.svg" alt="Tomos Logo" class="w-14 h-14 mx-auto mb-6 rounded-lg" />
 
   <div class="login-google mb-6">
     <p class="login-subtitle">Login with</p>
     <button type="button" id="btnGoogleLogin" class="google-login-btn" aria-label="Login with Google">
       <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-6 h-6" />
+      <span class="google-login-text">Login with Google</span>
     </button>
   </div>
 
@@ -171,8 +182,8 @@
       <label class="login-label" for="passwordInput">Password</label>
       <div class="relative">
         <input id="passwordInput" type="password" class="login-input pr-12" placeholder="••••••••">
-        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600" aria-pressed="false">
-          <span class="sr-only">Mostrar contraseña</span>
+        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600" aria-pressed="false" aria-label="Show password">
+          <span class="sr-only">Show password</span>
           <i data-lucide="eye" class="w-4 h-4"></i>
         </button>
       </div>

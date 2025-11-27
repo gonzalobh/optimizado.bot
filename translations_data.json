@@ -88,6 +88,38 @@
     "pt": "Senha"
   },
   {
+    "key": "Log in",
+    "en": "Log in",
+    "fr": "Se connecter",
+    "es": "Iniciar sesión",
+    "de": "Anmelden",
+    "pt": "Entrar"
+  },
+  {
+    "key": "Login with",
+    "en": "Login with",
+    "fr": "Se connecter avec",
+    "es": "Iniciar sesión con",
+    "de": "Anmelden mit",
+    "pt": "Entrar com"
+  },
+  {
+    "key": "Login with Google",
+    "en": "Login with Google",
+    "fr": "Se connecter avec Google",
+    "es": "Iniciar sesión con Google",
+    "de": "Mit Google anmelden",
+    "pt": "Entrar com o Google"
+  },
+  {
+    "key": "or",
+    "en": "or",
+    "fr": "ou",
+    "es": "o",
+    "de": "oder",
+    "pt": "ou"
+  },
+  {
     "key": "Login",
     "en": "Login",
     "fr": "Se connecter",
@@ -102,6 +134,30 @@
     "es": "❌ Credenciales incorrectas",
     "de": "❌ Falsche Zugangsdaten",
     "pt": "❌ Credenciais incorretas"
+  },
+  {
+    "key": "Show password",
+    "en": "Show password",
+    "fr": "Afficher le mot de passe",
+    "es": "Mostrar contraseña",
+    "de": "Passwort anzeigen",
+    "pt": "Mostrar senha"
+  },
+  {
+    "key": "Hide password",
+    "en": "Hide password",
+    "fr": "Masquer le mot de passe",
+    "es": "Ocultar contraseña",
+    "de": "Passwort verbergen",
+    "pt": "Ocultar senha"
+  },
+  {
+    "key": "Language",
+    "en": "Language",
+    "fr": "Langue",
+    "es": "Idioma",
+    "de": "Sprache",
+    "pt": "Idioma"
   },
   {
     "key": "Bot",
