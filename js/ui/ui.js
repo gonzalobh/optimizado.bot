@@ -4286,6 +4286,24 @@ loginErrorEl.classList.remove('hidden');
 }
 }
 });
+const googleLoginButton = $('btnGoogleLogin');
+if (googleLoginButton) {
+googleLoginButton.addEventListener('click', async () => {
+if (loginErrorEl) {
+loginErrorEl.textContent = defaultLoginErrorMessage;
+loginErrorEl.classList.add('hidden');
+}
+try {
+await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
+} catch (error) {
+console.error(error);
+if (loginErrorEl) {
+loginErrorEl.textContent = defaultLoginErrorMessage;
+loginErrorEl.classList.remove('hidden');
+}
+}
+});
+}
 $('btnLogout').addEventListener('click', async () => {
 try {
 await signOutFromFirebase();

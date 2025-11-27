@@ -150,25 +150,39 @@
 <main class="flex-1 w-full ml-0 md:ml-[72px] lg:ml-[72px] transition-all duration-300 lg:peer-hover:ml-[260px] flex justify-center">
 <div id="appContainer" class="w-full max-w-6xl pt-8 pb-8 px-4 sm:px-6 lg:px-8">
               <!-- Login card -->
-<div id="login" class="hidden w-full max-w-sm mx-auto mt-10 card p-6 text-center">
-<img src="logo.svg" alt="Tomos Logo" class="w-32 h-auto mx-auto mb-4 rounded-lg" />
-  
-  <div class="flex items-center justify-center mb-4 gap-2">
-    <h2 class="text-xl font-bold">Admin Access</h2>
-  </div>
+<div id="login" class="hidden login-card w-full max-w-md mx-auto text-center relative">
+  <img src="logo.svg" alt="Tomos Logo" class="w-14 h-14 mx-auto mb-6 rounded-lg" />
 
-  <label class="block text-sm text-gray-600 mb-1 text-left">Email</label>
-  <input id="emailInput" type="email" class="w-full border rounded-xl px-3 py-2 mb-3" placeholder="admin@company.com">
-  <label class="block text-sm text-gray-600 mb-1 text-left">Password</label>
-  <div class="relative mb-4">
-    <input id="passwordInput" type="password" class="w-full border rounded-xl px-3 py-2 pr-10" placeholder="••••••••">
-    <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 flex items-center pr-3 text-gray-400 hover:text-gray-600" aria-pressed="false">
-      <span class="sr-only">Mostrar contraseña</span>
-      <i data-lucide="eye" class="w-4 h-4"></i>
+  <div class="login-google mb-6">
+    <p class="login-subtitle">Login with</p>
+    <button type="button" id="btnGoogleLogin" class="google-login-btn" aria-label="Login with Google">
+      <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-6 h-6" />
     </button>
   </div>
-  <button id="btnLogin" class="w-full py-2.5 rounded-xl bg-black text-white">Login</button>
-  <p id="loginError" class="text-red-600 text-sm mt-3 hidden text-center">❌ Incorrect credentials</p>
+
+  <p class="login-divider" aria-hidden="true">or</p>
+
+  <div class="login-form space-y-4">
+    <div class="text-left">
+      <label class="login-label" for="emailInput">Email</label>
+      <input id="emailInput" type="email" class="login-input" placeholder="admin@company.com">
+    </div>
+    <div class="text-left">
+      <label class="login-label" for="passwordInput">Password</label>
+      <div class="relative">
+        <input id="passwordInput" type="password" class="login-input pr-12" placeholder="••••••••">
+        <button type="button" id="togglePasswordVisibility" class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600" aria-pressed="false">
+          <span class="sr-only">Mostrar contraseña</span>
+          <i data-lucide="eye" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+    <button id="btnLogin" class="primary-login-btn" type="button">Log in</button>
+  </div>
+
+  <p id="loginError" class="text-red-600 text-sm mt-4 hidden text-center">❌ Incorrect credentials</p>
+
+  <img src="/login/ville.png" alt="Ciudad" class="login-illustration" aria-hidden="true" />
 </div>
 
 
