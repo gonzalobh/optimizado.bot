@@ -1,7 +1,6 @@
 (function(){
-  const SUPPORTED_LANGUAGES = ['en','es','fr','de','pt'];
-  const browserLang = (navigator.language || '').split('-')[0];
-  const DEFAULT_LANGUAGE = SUPPORTED_LANGUAGES.includes(browserLang)
+  const browserLang = navigator.language.split('-')[0];
+  const DEFAULT_LANGUAGE = ['en','es','fr','de','pt'].includes(browserLang)
     ? browserLang
     : 'en';
   const TRANSLATIONS = {
@@ -26,14 +25,7 @@
       'Admin Access': 'Admin Access',
       'Email': 'Email',
       'Password': 'Password',
-      'Log in': 'Log in',
-      'Login with': 'Login with',
-      'Login with Google': 'Login with Google',
-      'or': 'or',
       'Login': 'Login',
-      'Show password': 'Show password',
-      'Hide password': 'Hide password',
-      'Language': 'Language',
       '❌ Incorrect credentials': '❌ Incorrect credentials',
       'Bot': 'Bot',
       'Activity': 'Activity',
@@ -331,21 +323,6 @@
       'Acceso revocado para {email}': 'Access revoked for {email}',
       'No se pudo revocar el acceso. Inténtalo de nuevo.': 'Could not revoke access. Please try again.',
       'Admin principal': 'Primary admin',
-      '⚠ Bot configuration not found': '⚠ Bot configuration not found',
-      '✔ Bot cloned': '✔ Bot cloned',
-      '⚠ Failed to clone bot': '⚠ Failed to clone bot',
-      '⚠ You do not have permission to delete bots': '⚠ You do not have permission to delete bots',
-      '✔ Bot deleted': '✔ Bot deleted',
-      '⚠ Failed to delete bot': '⚠ Failed to delete bot',
-      '⚠ Could not create the bot': '⚠ Could not create the bot',
-      '⚠ Could not apply the template': '⚠ Could not apply the template',
-      'Conversation deleted': 'Conversation deleted',
-      'Could not delete the conversation': 'Could not delete the conversation',
-      'No archived conversations found': 'No archived conversations found',
-      'Archived conversations deleted': 'Archived conversations deleted',
-      'Could not delete archived conversations': 'Could not delete archived conversations',
-      'Enter a valid URL': 'Enter a valid URL',
-      'This site is already allowed': 'This site is already allowed',
     },
     'fr': {
       'Tomos Bot': 'Tomos Bot',
@@ -368,14 +345,7 @@
       'Admin Access': 'Accès administrateur',
       'Email': 'E-mail',
       'Password': 'Mot de passe',
-      'Log in': 'Se connecter',
-      'Login with': 'Se connecter avec',
-      'Login with Google': 'Se connecter avec Google',
-      'or': 'ou',
       'Login': 'Se connecter',
-      'Show password': 'Afficher le mot de passe',
-      'Hide password': 'Masquer le mot de passe',
-      'Language': 'Langue',
       '❌ Incorrect credentials': '❌ Identifiants incorrects',
       'Bot': 'Bot',
       'Activity': 'Activité',
@@ -673,21 +643,6 @@
       'Acceso revocado para {email}': 'Accès révoqué pour {email}',
       'No se pudo revocar el acceso. Inténtalo de nuevo.': "Impossible de révoquer l'accès. Réessayez.",
       'Admin principal': 'Administrateur principal',
-      '⚠ Bot configuration not found': '⚠ Configuration du bot introuvable',
-      '✔ Bot cloned': '✔ Bot cloné',
-      '⚠ Failed to clone bot': '⚠ Impossible de cloner le bot',
-      '⚠ You do not have permission to delete bots': "⚠ Vous n'avez pas l'autorisation de supprimer des bots",
-      '✔ Bot deleted': '✔ Bot supprimé',
-      '⚠ Failed to delete bot': '⚠ Impossible de supprimer le bot',
-      '⚠ Could not create the bot': '⚠ Impossible de créer le bot',
-      '⚠ Could not apply the template': "⚠ Impossible d'appliquer le modèle",
-      'Conversation deleted': 'Conversation supprimée',
-      'Could not delete the conversation': 'Impossible de supprimer la conversation',
-      'No archived conversations found': 'Aucune ancienne conversation trouvée',
-      'Archived conversations deleted': 'Anciennes conversations supprimées',
-      'Could not delete archived conversations': 'Impossible de supprimer les anciennes conversations',
-      'Enter a valid URL': 'Saisissez une URL valide',
-      'This site is already allowed': 'Ce site est déjà autorisé',
     },
     'es': {
       'Tomos Bot': 'Tomos Bot',
@@ -710,14 +665,7 @@
       'Admin Access': 'Acceso de administrador',
       'Email': 'Correo electrónico',
       'Password': 'Contraseña',
-      'Log in': 'Iniciar sesión',
-      'Login with': 'Anmelden mit',
-      'Login with Google': 'Iniciar sesión con Google',
-      'or': 'o',
       'Login': 'Iniciar sesión',
-      'Show password': 'Mostrar contraseña',
-      'Hide password': 'Ocultar contraseña',
-      'Language': 'Idioma',
       '❌ Incorrect credentials': '❌ Credenciales incorrectas',
       'Bot': 'Bot',
       'Activity': 'Actividad',
@@ -1016,21 +964,6 @@
       'Acceso revocado para {email}': 'Acceso revocado para {email}',
       'No se pudo revocar el acceso. Inténtalo de nuevo.': 'No se pudo revocar el acceso. Inténtalo de nuevo.',
       'Admin principal': 'Admin principal',
-      '⚠ Bot configuration not found': '⚠ No se encontró la configuración del bot',
-      '✔ Bot cloned': '✔ Bot clonado',
-      '⚠ Failed to clone bot': '⚠ No se pudo clonar el bot',
-      '⚠ You do not have permission to delete bots': '⚠ No tienes permisos para eliminar bots',
-      '✔ Bot deleted': '✔ Bot eliminado',
-      '⚠ Failed to delete bot': '⚠ No se pudo eliminar el bot',
-      '⚠ Could not create the bot': '⚠ No se pudo crear el bot',
-      '⚠ Could not apply the template': '⚠ No se pudo aplicar el template',
-      'Conversation deleted': 'Conversación eliminada',
-      'Could not delete the conversation': 'No se pudo eliminar la conversación',
-      'No archived conversations found': 'No se encontraron conversaciones antiguas',
-      'Archived conversations deleted': 'Conversaciones antiguas eliminadas',
-      'Could not delete archived conversations': 'No se pudieron eliminar las conversaciones antiguas',
-      'Enter a valid URL': 'Ingresa una URL válida',
-      'This site is already allowed': 'Este sitio ya está permitido',
     },
     'de': {
       'Tomos Bot': 'Tomos Bot',
@@ -1053,14 +986,7 @@
       'Admin Access': 'Admin-Zugang',
       'Email': 'E-Mail',
       'Password': 'Passwort',
-      'Log in': 'Anmelden',
-      'Login with': 'Iniciar sesión con',
-      'Login with Google': 'Mit Google anmelden',
-      'or': 'oder',
       'Login': 'Anmelden',
-      'Show password': 'Passwort anzeigen',
-      'Hide password': 'Passwort verbergen',
-      'Language': 'Sprache',
       '❌ Incorrect credentials': '❌ Falsche Zugangsdaten',
       'Bot': 'Bot',
       'Activity': 'Aktivität',
@@ -1359,21 +1285,6 @@
       'Acceso revocado para {email}': 'Zugriff für {email} widerrufen',
       'No se pudo revocar el acceso. Inténtalo de nuevo.': 'Zugriff konnte nicht widerrufen werden. Bitte versuche es erneut.',
       'Admin principal': 'Hauptadministrator',
-      '⚠ Bot configuration not found': '⚠ Bot-Konfiguration nicht gefunden',
-      '✔ Bot cloned': '✔ Bot geklont',
-      '⚠ Failed to clone bot': '⚠ Bot konnte nicht geklont werden',
-      '⚠ You do not have permission to delete bots': '⚠ Du hast keine Berechtigung, Bots zu löschen',
-      '✔ Bot deleted': '✔ Bot gelöscht',
-      '⚠ Failed to delete bot': '⚠ Bot konnte nicht gelöscht werden',
-      '⚠ Could not create the bot': '⚠ Bot konnte nicht erstellt werden',
-      '⚠ Could not apply the template': '⚠ Vorlage konnte nicht angewendet werden',
-      'Conversation deleted': 'Konversation gelöscht',
-      'Could not delete the conversation': 'Konversation konnte nicht gelöscht werden',
-      'No archived conversations found': 'Keine alten Konversationen gefunden',
-      'Archived conversations deleted': 'Alte Konversationen gelöscht',
-      'Could not delete archived conversations': 'Alte Konversationen konnten nicht gelöscht werden',
-      'Enter a valid URL': 'Gib eine gültige URL ein',
-      'This site is already allowed': 'Diese Seite ist bereits erlaubt',
     },
     'pt': {
       'Tomos Bot': 'Tomos Bot',
@@ -1396,14 +1307,7 @@
       'Admin Access': 'Acesso administrativo',
       'Email': 'E-mail',
       'Password': 'Senha',
-      'Log in': 'Entrar',
-      'Login with': 'Entrar com',
-      'Login with Google': 'Entrar com o Google',
-      'or': 'ou',
       'Login': 'Entrar',
-      'Show password': 'Mostrar senha',
-      'Hide password': 'Ocultar senha',
-      'Language': 'Idioma',
       '❌ Incorrect credentials': '❌ Credenciais incorretas',
       'Bot': 'Bot',
       'Activity': 'Atividade',
@@ -1702,21 +1606,6 @@
       'Acceso revocado para {email}': 'Acesso revogado para {email}',
       'No se pudo revocar el acceso. Inténtalo de nuevo.': 'Não foi possível revogar o acesso. Tente novamente.',
       'Admin principal': 'Administrador principal',
-      '⚠ Bot configuration not found': '⚠ Configuração do bot não encontrada',
-      '✔ Bot cloned': '✔ Bot clonado',
-      '⚠ Failed to clone bot': '⚠ Não foi possível clonar o bot',
-      '⚠ You do not have permission to delete bots': '⚠ Você não tem permissão para excluir bots',
-      '✔ Bot deleted': '✔ Bot excluído',
-      '⚠ Failed to delete bot': '⚠ Não foi possível excluir o bot',
-      '⚠ Could not create the bot': '⚠ Não foi possível criar o bot',
-      '⚠ Could not apply the template': '⚠ Não foi possível aplicar o template',
-      'Conversation deleted': 'Conversa excluída',
-      'Could not delete the conversation': 'Não foi possível excluir a conversa',
-      'No archived conversations found': 'Nenhuma conversa antiga encontrada',
-      'Archived conversations deleted': 'Conversas antigas excluídas',
-      'Could not delete archived conversations': 'Não foi possível excluir as conversas antigas',
-      'Enter a valid URL': 'Insira uma URL válida',
-      'This site is already allowed': 'Este site já está permitido',
     },
   };
   const TRANSLATION_KEYS = new Set(Object.keys(TRANSLATIONS.en));
@@ -1724,10 +1613,7 @@
   const ATTR_KEYS_SYMBOL = Symbol('translationAttrKeys');
   const textNodes = new Map();
   const attrNodes = new Map();
-  let storedLanguage = localStorage.getItem('preferredLanguage');
-  let currentLanguage = SUPPORTED_LANGUAGES.includes(storedLanguage)
-    ? storedLanguage
-    : DEFAULT_LANGUAGE;
+  let currentLanguage = localStorage.getItem('preferredLanguage') || DEFAULT_LANGUAGE;
   const normalize = (value) => (value || '').replace(/\s+/g, ' ').trim();
   function getTranslation(lang, key) {
     const normalized = normalize(key);
@@ -1846,23 +1732,8 @@
     scanTargets(root);
   }
 
-  function syncLanguageSelects() {
-    const selects = document.querySelectorAll('[data-language-select]');
-    selects.forEach(select => {
-      if (select && select.value !== currentLanguage) {
-        select.value = currentLanguage;
-      }
-    });
-  }
-
   function applyLanguage(lang) {
-    const normalizedInput = (lang || '').split('-')[0];
-    const nextLanguage = SUPPORTED_LANGUAGES.includes(lang)
-      ? lang
-      : SUPPORTED_LANGUAGES.includes(normalizedInput)
-        ? normalizedInput
-        : DEFAULT_LANGUAGE;
-    currentLanguage = nextLanguage;
+    currentLanguage = lang || DEFAULT_LANGUAGE;
     localStorage.setItem('preferredLanguage', currentLanguage);
     document.documentElement.lang = currentLanguage;
     refreshTargets();
@@ -1879,7 +1750,8 @@
       });
     });
     document.title = getTranslation(currentLanguage, 'Tomos Bot');
-    syncLanguageSelects();
+    const select = document.getElementById('languageSelect');
+    if (select && select.value !== currentLanguage) select.value = currentLanguage;
   }
   window.translationManager = {
     init() { applyLanguage(currentLanguage); },
