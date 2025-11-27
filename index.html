@@ -875,8 +875,14 @@
           <div class="flex items-start justify-between gap-3">
             <div id="messagesUserName" class="text-lg font-semibold text-gray-800 truncate"></div>
             <div class="flex flex-col items-end gap-1 text-right">
-              <div id="messagesUserLocation" class="text-xs text-gray-500 leading-tight"></div>
-              <div id="messagesUserOrigin" class="text-xs text-gray-500 leading-tight"></div>
+              <div id="messagesUserLocation" class="text-xs text-gray-500 leading-tight flex items-center gap-1 text-right hidden">
+                <i data-lucide="map-pin" class="w-4 h-4"></i>
+                <span id="messagesUserLocationText" class="truncate"></span>
+              </div>
+              <div id="messagesUserOrigin" class="text-xs text-gray-500 leading-tight flex items-center gap-1 text-right hidden">
+                <i data-lucide="laptop-minimal-check" class="w-4 h-4"></i>
+                <span id="messagesUserOriginText" class="truncate"></span>
+              </div>
               <div id="messagesUpdatedAt" class="text-xs text-gray-500"></div>
             </div>
           </div>
