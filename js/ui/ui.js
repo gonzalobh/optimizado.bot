@@ -6384,13 +6384,14 @@ const listEl = $('messagesList');
 const botSelect = $('messagesBotFilter');
 const searchInput = $('messagesSearchInput');
 const emptyState = $('messagesEmpty');
-const detailEl = $('messagesDetail');
-const placeholderEl = $('messagesPlaceholder');
-const headerEl = $('messagesConversationHeader');
-const userNameEl = $('messagesUserName');
-const userLocationEl = $('messagesUserLocation');
-const chatHeaderNameEl = document.getElementById('chatHeaderName');
-const updatedEl = $('messagesUpdatedAt');
+  const detailEl = $('messagesDetail');
+  const placeholderEl = $('messagesPlaceholder');
+  const headerEl = $('messagesConversationHeader');
+  const userNameEl = $('messagesUserName');
+  const userLocationEl = $('messagesUserLocation');
+  const userOriginEl = $('messagesUserOrigin');
+  const chatHeaderNameEl = document.getElementById('chatHeaderName');
+  const updatedEl = $('messagesUpdatedAt');
 const deleteOldBtn = $('deleteOldMessages');
 const ipLocationCache = new Map();
 if (!listEl || !detailEl || !placeholderEl) {
@@ -6568,99 +6569,146 @@ console.warn('No se pudo obtener la ubicación por IP', err);
 return null;
 }
 }
-function formatDisplayNameWithLocation(baseName, location) {
-const country = (location?.country || '').trim();
-const city = (location?.city || '').trim();
-const flag = (location?.flag || '').trim();
-if (!country) return '';
-const region = (location?.region || '').trim();
-const regionText = region ? `, ${region}` : '';
-const cityText = city ? `, ${city}` : '';
-const flagText = flag ? `${flag} ` : '';
-return `${flagText}${country}${regionText}${cityText}`.trim();
-}
-async function fetchConversationLocation(chatId) {
-if (!chatId) return null;
-const botId = getActiveMessagesBot?.() || BOT;
-try {
-const snap = await firebase.database().ref(`empresas/${EMPRESA}/bots/${botId}/conversaciones/${chatId}/meta/location`).once('value');
-if (!snap.exists()) return null;
-return snap.val();
-} catch (err) {
-console.warn('No se pudo obtener la ubicación de la conversación', err);
-return null;
-}
-}
-async function updateHeaderLocation(meta = {}, baseName, chatId = messagesSelectedChatId) {
-const location = await fetchConversationLocation(chatId);
-if (location) {
-if (chatId !== messagesSelectedChatId) return;
-const text = formatDisplayNameWithLocation(baseName, location);
-if (userLocationEl) {
-userLocationEl.textContent = text;
-userLocationEl.classList.toggle('hidden', !text);
-}
-return;
-}
-const activeChatId = messagesSelectedChatId;
-const ip = meta.ip || '';
-if (!ip) return;
-const ipLocation = await fetchIpLocation(ip);
-if (!ipLocation) return;
-if (activeChatId !== messagesSelectedChatId) return;
-const text = formatDisplayNameWithLocation(baseName, ipLocation);
-if (userLocationEl) {
-userLocationEl.textContent = text;
-userLocationEl.classList.toggle('hidden', !text);
-}
-}
-function attachActiveConversationListener(chatId) {
-detachActiveConversationListener();
-if (!chatId) return;
-const ref = getMessagesRootRef().child(chatId);
-const handler = (snap) => {
-if (!snap.exists()) {
-removeConversationLocal(chatId);
-return;
-}
-const payload = snap.val() || {};
-const mapped = mapConversation(chatId, payload);
-const existingIndex = messagesConversations.findIndex(item => item.chatId === chatId);
-if (existingIndex === -1) {
-messagesConversations.push(mapped);
-} else {
-messagesConversations[existingIndex] = { ...messagesConversations[existingIndex], ...mapped };
-}
-messagesConversations.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
-updatePaginationState();
-updateHeader(payload, chatId);
-renderConversationMessages(payload.mensajes || payload.messages || {});
-detailEl.classList.remove('hidden');
-placeholderEl.classList.add('hidden');
-if (headerEl) headerEl.classList.remove('hidden');
-scheduleRender();
-};
-ref.on('value', handler);
-messagesActiveDetailRef = ref;
-messagesActiveDetailHandler = handler;
-}
-function resetConversationView() {
-detachActiveConversationListener();
-messagesSelectedChatId = null;
-detailEl.innerHTML = '';
-detailEl.classList.add('hidden');
-placeholderEl.classList.remove('hidden');
-if (headerEl) headerEl.classList.add('hidden');
-if (userNameEl) userNameEl.textContent = '';
-if (userLocationEl) {
-userLocationEl.textContent = '';
-userLocationEl.classList.add('hidden');
-}
-if (updatedEl) {
-updatedEl.textContent = '';
-updatedEl.classList.add('hidden');
-}
-}
+  function formatDisplayNameWithLocation(baseName, location) {
+    const country = (location?.country || '').trim();
+    const city = (location?.city || '').trim();
+    const flag = (location?.flag || '').trim();
+    if (!country) return '';
+    const region = (location?.region || '').trim();
+    const regionText = region ? `, ${region}` : '';
+    const cityText = city ? `, ${city}` : '';
+    const flagText = flag ? `${flag} ` : '';
+    return `${flagText}${country}${regionText}${cityText}`.trim();
+  }
+
+  function formatOriginDisplay(origin) {
+    if (!origin) return '—';
+    const raw = String(origin).trim();
+    if (!raw || raw === '—') return '—';
+    try {
+      const parsed = new URL(raw);
+      return parsed.hostname || parsed.origin || raw;
+    } catch (err) {
+      const withoutProtocol = raw.replace(/^[a-zA-Z]+:\/\//, '').split('/')[0];
+      return withoutProtocol || '—';
+    }
+  }
+
+
+  async function fetchConversationOrigin(chatId) {
+    if (!chatId) return null;
+    const botId = getActiveMessagesBot?.() || BOT;
+    try {
+      const snap = await firebase.database().ref(`empresas/${EMPRESA}/bots/${botId}/conversaciones/${chatId}/meta/origin`).once('value');
+      if (!snap.exists()) return null;
+      return snap.val();
+    } catch (err) {
+      console.warn('No se pudo obtener el origen de la conversación', err);
+      return null;
+    }
+  }
+
+  async function fetchConversationLocation(chatId) {
+    if (!chatId) return null;
+    const botId = getActiveMessagesBot?.() || BOT;
+    try {
+      const snap = await firebase.database().ref(`empresas/${EMPRESA}/bots/${botId}/conversaciones/${chatId}/meta/location`).once('value');
+      if (!snap.exists()) return null;
+      return snap.val();
+    } catch (err) {
+      console.warn('No se pudo obtener la ubicación de la conversación', err);
+      return null;
+    }
+  }
+  async function updateHeaderLocation(meta = {}, baseName, chatId = messagesSelectedChatId) {
+    const location = await fetchConversationLocation(chatId);
+    if (location) {
+      if (chatId !== messagesSelectedChatId) return;
+      const text = formatDisplayNameWithLocation(baseName, location);
+      if (userLocationEl) {
+        userLocationEl.textContent = text;
+        userLocationEl.classList.toggle('hidden', !text);
+      }
+      return;
+    }
+    const activeChatId = messagesSelectedChatId;
+    const ip = meta.ip || '';
+    if (!ip) return;
+    const ipLocation = await fetchIpLocation(ip);
+    if (!ipLocation) return;
+    if (activeChatId !== messagesSelectedChatId) return;
+    const text = formatDisplayNameWithLocation(baseName, ipLocation);
+    if (userLocationEl) {
+      userLocationEl.textContent = text;
+      userLocationEl.classList.toggle('hidden', !text);
+    }
+  }
+
+  async function updateHeaderOrigin(meta = {}, chatId = messagesSelectedChatId) {
+    const existing = meta?.origin || meta?.meta?.origin || '';
+    let originValue = existing;
+
+    if (!originValue) {
+      originValue = await fetchConversationOrigin(chatId);
+    }
+
+    const formatted = formatOriginDisplay(originValue);
+    if (userOriginEl) {
+      userOriginEl.textContent = formatted;
+      userOriginEl.classList.toggle('hidden', formatted === '—');
+    }
+  }
+  function attachActiveConversationListener(chatId) {
+    detachActiveConversationListener();
+    if (!chatId) return;
+    const ref = getMessagesRootRef().child(chatId);
+    const handler = (snap) => {
+      if (!snap.exists()) {
+        removeConversationLocal(chatId);
+        return;
+      }
+      const payload = snap.val() || {};
+      const mapped = mapConversation(chatId, payload);
+      const existingIndex = messagesConversations.findIndex(item => item.chatId === chatId);
+      if (existingIndex === -1) {
+        messagesConversations.push(mapped);
+      } else {
+        messagesConversations[existingIndex] = { ...messagesConversations[existingIndex], ...mapped };
+      }
+      messagesConversations.sort((a, b) => (b.updatedAt || 0) - (a.updatedAt || 0));
+      updatePaginationState();
+      updateHeader(payload, chatId);
+      renderConversationMessages(payload.mensajes || payload.messages || {});
+      detailEl.classList.remove('hidden');
+      placeholderEl.classList.add('hidden');
+      if (headerEl) headerEl.classList.remove('hidden');
+      scheduleRender();
+    };
+    ref.on('value', handler);
+    messagesActiveDetailRef = ref;
+    messagesActiveDetailHandler = handler;
+  }
+  function resetConversationView() {
+    detachActiveConversationListener();
+    messagesSelectedChatId = null;
+    detailEl.innerHTML = '';
+    detailEl.classList.add('hidden');
+    placeholderEl.classList.remove('hidden');
+    if (headerEl) headerEl.classList.add('hidden');
+    if (userNameEl) userNameEl.textContent = '';
+    if (userLocationEl) {
+      userLocationEl.textContent = '';
+      userLocationEl.classList.add('hidden');
+    }
+    if (userOriginEl) {
+      userOriginEl.textContent = '';
+      userOriginEl.classList.add('hidden');
+    }
+    if (updatedEl) {
+      updatedEl.textContent = '';
+      updatedEl.classList.add('hidden');
+    }
+  }
 function renderConversationMessages(data = {}) {
 const entries = Object.entries(data || {}).sort((a, b) => {
 const timeA = Number(a[1]?.time ?? a[1]?.timestamp ?? a[1]?.createdAt ?? a[1]?.updatedAt ?? 0);
@@ -6695,20 +6743,25 @@ detailEl.appendChild(row);
 });
 detailEl.scrollTop = detailEl.scrollHeight;
 }
-function updateHeader(meta = {}, chatId = messagesSelectedChatId) {
-const displayName = (meta.userName || meta.name || '').trim() || 'Guest';
-if (userNameEl) userNameEl.textContent = displayName;
-if (chatHeaderNameEl) chatHeaderNameEl.textContent = displayName;
-if (userLocationEl) {
-userLocationEl.textContent = '';
-userLocationEl.classList.add('hidden');
-}
-updateHeaderLocation(meta, displayName, chatId);
-if (updatedEl) {
-const timestamp = Number(meta.updatedAt ?? meta.timestamp ?? meta.lastUpdated ?? 0);
-const formatted = formatTimestamp(timestamp);
-updatedEl.textContent = formatted;
-updatedEl.classList.toggle('hidden', !formatted);
+  function updateHeader(meta = {}, chatId = messagesSelectedChatId) {
+    const displayName = (meta.userName || meta.name || '').trim() || 'Guest';
+    if (userNameEl) userNameEl.textContent = displayName;
+    if (chatHeaderNameEl) chatHeaderNameEl.textContent = displayName;
+    if (userLocationEl) {
+      userLocationEl.textContent = '';
+      userLocationEl.classList.add('hidden');
+    }
+    if (userOriginEl) {
+      userOriginEl.textContent = '';
+      userOriginEl.classList.add('hidden');
+    }
+    updateHeaderLocation(meta, displayName, chatId);
+    updateHeaderOrigin(meta, chatId);
+    if (updatedEl) {
+      const timestamp = Number(meta.updatedAt ?? meta.timestamp ?? meta.lastUpdated ?? 0);
+      const formatted = formatTimestamp(timestamp);
+      updatedEl.textContent = formatted;
+      updatedEl.classList.toggle('hidden', !formatted);
 }
 }
 function renderConversations() {
@@ -7459,6 +7512,7 @@ const deleteBtn = $("deleteAutoResponse");
       registerTranslationTarget(typeModalConfirm, "Create");
     }
   }
+
   const resetTypeModal = () => {
     pendingTypeSelection = null;
     if (typeModalConfirm) typeModalConfirm.disabled = true;

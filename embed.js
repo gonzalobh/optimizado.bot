@@ -142,6 +142,7 @@
     const iframeSrc = `https://tomos.bot/chat.html?${params.toString()}`;
 
     const pageOrigin = pageUrl?.origin || window.location.origin;
+    const externalOrigin = window.location.origin;
     const allowedOrigins = await fetchAllowedOrigins(empresa, botAttr);
     if (allowedOrigins.length && pageOrigin) {
       if (!allowedOrigins.includes(pageOrigin)) {
@@ -593,6 +594,8 @@
       openChat();
     });
 
+    let externalOriginSent = false;
+
     window.addEventListener("message", (e) => {
       if (!e.origin.includes("tomos.bot")) return;
       const d = e.data || {};
@@ -672,6 +675,16 @@
 
         case "closeChatWindow":
           closeChat();
+          break;
+        case "requestExternalOrigin":
+          if (externalOriginSent) break;
+          externalOriginSent = true;
+          try {
+            frame.contentWindow.postMessage(
+              { action: "externalOrigin", externalOrigin: pageOrigin || externalOrigin || "" },
+              "*"
+            );
+          } catch {}
           break;
       }
     });

@@ -266,6 +266,9 @@ let chatStartedAt = null;
 const conversationLog = []; // {sender:'bot'|'user', text:string, time:number}
 const pendingMessagesQueue = [];
 let hasUserSentMessage = false;
+let externalOriginRequested = false;
+let externalOriginSaved = false;
+let externalOriginFallbackTimeout = null;
 
 async function fetchUserLocation() {
   try {
@@ -309,6 +312,48 @@ async function saveUserLocationToFirebase() {
   }
 }
 
+function normalizeExternalOrigin(value) {
+  if (value == null) return '';
+  const str = String(value).trim();
+  if (!str) return '';
+  try {
+    const url = new URL(str);
+    return url.origin || url.hostname || str;
+  } catch (err) {
+    const withoutProtocol = str.replace(/^[a-zA-Z]+:\/\//, '').replace(/\/.*$/, '');
+    return withoutProtocol || str;
+  }
+}
+
+async function saveExternalOriginToFirebase(value) {
+  if (!chatMetaRef || externalOriginSaved || chatMetaCache?.origin) return;
+  const normalized = normalizeExternalOrigin(value) || '—';
+  try {
+    await chatMetaRef.child('origin').set(normalized);
+    externalOriginSaved = true;
+    chatMetaCache = { ...(chatMetaCache || {}), origin: normalized };
+  } catch (err) {
+    console.warn('No se pudo guardar el origen externo', err);
+  }
+}
+
+function requestExternalOriginFromParent() {
+  if (externalOriginRequested || externalOriginSaved || chatMetaCache?.origin) return;
+  externalOriginRequested = true;
+  try {
+    window.parent.postMessage({ action: 'requestExternalOrigin' }, '*');
+  } catch (err) {
+    console.warn('No se pudo solicitar el origen externo', err);
+  }
+
+  if (externalOriginFallbackTimeout) clearTimeout(externalOriginFallbackTimeout);
+  externalOriginFallbackTimeout = setTimeout(() => {
+    if (!externalOriginSaved && !chatMetaCache?.origin) {
+      saveExternalOriginToFirebase('—');
+    }
+  }, 4000);
+}
+
 let leadPromptShown = false;
 let leadCaptureState = null;
 let leadCaptureCompleted = false;
@@ -322,6 +367,9 @@ chatMetaRef.once('value').then(snapshot => {
   chatMetaCache = snapshot.val() || {};
   if (chatMetaCache.startedAt) {
     chatStartedAt = chatMetaCache.startedAt;
+  }
+  if (chatMetaCache.origin) {
+    externalOriginSaved = true;
   }
 }).catch(err => console.warn('No se pudo cargar la metadata del chat', err));
 
@@ -399,6 +447,7 @@ function logChatMessage(sender, text) {
   if (!hasUserSentMessage) {
     if (isUserMessage) {
       hasUserSentMessage = true;
+      requestExternalOriginFromParent();
       saveUserLocationToFirebase();
       flushPendingMessages();
       persistChatPayload(payload);
@@ -1407,6 +1456,15 @@ function initEmbedIntegration() {
   window.addEventListener("message", (e) => {
     if (!e.data || typeof e.data !== "object") return;
     const { action } = e.data;
+
+    if (action === "externalOrigin") {
+      if (externalOriginFallbackTimeout) {
+        clearTimeout(externalOriginFallbackTimeout);
+        externalOriginFallbackTimeout = null;
+      }
+      saveExternalOriginToFirebase(e.data?.externalOrigin);
+      return;
+    }
 
     if (action === "getChatButtonIcon") {
       if (typeof eref !== "function") {
