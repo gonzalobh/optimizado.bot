@@ -23,8 +23,7 @@ body.login-view #appContainer {
 
 .login-card {
   width: 100%;
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: #f3f3f3;
   border-radius: 16px;
   padding: 2.4rem 2.4rem 2.6rem;
   box-shadow: 0 10px 30px rgba(17, 24, 39, 0.04);
@@ -73,11 +72,8 @@ body.login-view #appContainer {
   height: 22px;
 }
 
-.google-login-text {
-  font-weight: 600;
-  font-size: 0.95rem;
-  letter-spacing: -0.01em;
-  white-space: nowrap;
+.google-login-btn::after {
+  content: "Continue with Google";
 }
 
 .login-divider {
@@ -101,7 +97,7 @@ body.login-view #appContainer {
 
 .login-input {
   width: 100%;
-  border: 1px solid #d1d5db;
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
   padding: 0.9rem 1rem;
   font-size: 0.95rem;
@@ -125,10 +121,10 @@ body.login-view #appContainer {
 .primary-login-btn {
   width: 100%;
   padding: 1rem 1rem;
-  background: #111827;
+  background: #111;
   color: #ffffff;
   border: none;
-  border-radius: 10px;
+  border-radius: 400px;
   font-weight: 600;
   letter-spacing: -0.01em;
   text-transform: none;
@@ -138,28 +134,7 @@ body.login-view #appContainer {
 }
 
 .primary-login-btn:hover {
-  background: #000000;
-}
-
-.login-language-switcher {
-  position: absolute;
-  top: 1rem;
-  right: 1rem;
-}
-
-.login-language-select {
-  border: 1px solid #d1d5db;
-  border-radius: 10px;
-  padding: 0.45rem 0.75rem;
-  font-size: 0.85rem;
-  background: #ffffff;
-  color: #111827;
-  min-width: 96px;
-}
-
-.login-language-select:focus {
-  outline: none;
-  border-color: #111827;
+  background: #3a3a3a;
 }
 
 .login-illustration {
