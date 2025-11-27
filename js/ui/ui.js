@@ -6389,7 +6389,9 @@ const emptyState = $('messagesEmpty');
   const headerEl = $('messagesConversationHeader');
   const userNameEl = $('messagesUserName');
   const userLocationEl = $('messagesUserLocation');
+  const userLocationTextEl = $('messagesUserLocationText');
   const userOriginEl = $('messagesUserOrigin');
+  const userOriginTextEl = $('messagesUserOriginText');
   const chatHeaderNameEl = document.getElementById('chatHeaderName');
   const updatedEl = $('messagesUpdatedAt');
 const deleteOldBtn = $('deleteOldMessages');
@@ -6625,10 +6627,8 @@ return null;
     if (location) {
       if (chatId !== messagesSelectedChatId) return;
       const text = formatDisplayNameWithLocation(baseName, location);
-      if (userLocationEl) {
-        userLocationEl.textContent = text;
-        userLocationEl.classList.toggle('hidden', !text);
-      }
+      if (userLocationTextEl) userLocationTextEl.textContent = text;
+      if (userLocationEl) userLocationEl.classList.toggle('hidden', !text);
       return;
     }
     const activeChatId = messagesSelectedChatId;
@@ -6638,10 +6638,8 @@ return null;
     if (!ipLocation) return;
     if (activeChatId !== messagesSelectedChatId) return;
     const text = formatDisplayNameWithLocation(baseName, ipLocation);
-    if (userLocationEl) {
-      userLocationEl.textContent = text;
-      userLocationEl.classList.toggle('hidden', !text);
-    }
+    if (userLocationTextEl) userLocationTextEl.textContent = text;
+    if (userLocationEl) userLocationEl.classList.toggle('hidden', !text);
   }
 
   async function updateHeaderOrigin(meta = {}, chatId = messagesSelectedChatId) {
@@ -6653,10 +6651,8 @@ return null;
     }
 
     const formatted = formatOriginDisplay(originValue);
-    if (userOriginEl) {
-      userOriginEl.textContent = formatted;
-      userOriginEl.classList.toggle('hidden', formatted === '—');
-    }
+    if (userOriginTextEl) userOriginTextEl.textContent = formatted === '—' ? '' : formatted;
+    if (userOriginEl) userOriginEl.classList.toggle('hidden', formatted === '—');
   }
   function attachActiveConversationListener(chatId) {
     detachActiveConversationListener();
@@ -6697,11 +6693,11 @@ return null;
     if (headerEl) headerEl.classList.add('hidden');
     if (userNameEl) userNameEl.textContent = '';
     if (userLocationEl) {
-      userLocationEl.textContent = '';
+      if (userLocationTextEl) userLocationTextEl.textContent = '';
       userLocationEl.classList.add('hidden');
     }
     if (userOriginEl) {
-      userOriginEl.textContent = '';
+      if (userOriginTextEl) userOriginTextEl.textContent = '';
       userOriginEl.classList.add('hidden');
     }
     if (updatedEl) {
@@ -6748,11 +6744,11 @@ detailEl.scrollTop = detailEl.scrollHeight;
     if (userNameEl) userNameEl.textContent = displayName;
     if (chatHeaderNameEl) chatHeaderNameEl.textContent = displayName;
     if (userLocationEl) {
-      userLocationEl.textContent = '';
+      if (userLocationTextEl) userLocationTextEl.textContent = '';
       userLocationEl.classList.add('hidden');
     }
     if (userOriginEl) {
-      userOriginEl.textContent = '';
+      if (userOriginTextEl) userOriginTextEl.textContent = '';
       userOriginEl.classList.add('hidden');
     }
     updateHeaderLocation(meta, displayName, chatId);
