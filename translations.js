@@ -1,8 +1,11 @@
 (function(){
-  const browserLang = navigator.language.split('-')[0];
-  const DEFAULT_LANGUAGE = ['en','es','fr','de','pt'].includes(browserLang)
+  const SUPPORTED_LANGUAGES = ['en','es','fr','de','pt'];
+  const browserLang = (navigator.language || 'en').split('-')[0].toLowerCase();
+  const DEFAULT_LANGUAGE = SUPPORTED_LANGUAGES.includes(browserLang)
     ? browserLang
     : 'en';
+  window.DEFAULT_LANGUAGE = DEFAULT_LANGUAGE;
+  window.SUPPORTED_LANGUAGES = SUPPORTED_LANGUAGES;
   const TRANSLATIONS = {
     'en': {
       'Tomos Bot': 'Tomos Bot',
@@ -27,6 +30,11 @@
       'Password': 'Password',
       'Login': 'Login',
       '❌ Incorrect credentials': '❌ Incorrect credentials',
+      'Login with Google': 'Login with Google',
+      'or': 'or',
+      'Show password': 'Show password',
+      'Hide password': 'Hide password',
+      'Tu cuenta no está asociada a ninguna empresa': 'Your account is not linked to any company',
       'Bot': 'Bot',
       'Activity': 'Activity',
       'Edit': 'Edit',
@@ -347,6 +355,11 @@
       'Password': 'Mot de passe',
       'Login': 'Se connecter',
       '❌ Incorrect credentials': '❌ Identifiants incorrects',
+      'Login with Google': 'Se connecter avec Google',
+      'or': 'ou',
+      'Show password': 'Afficher le mot de passe',
+      'Hide password': 'Masquer le mot de passe',
+      'Tu cuenta no está asociada a ninguna empresa': "Votre compte n'est associé à aucune entreprise",
       'Bot': 'Bot',
       'Activity': 'Activité',
       'Edit': 'Modifier',
@@ -667,6 +680,11 @@
       'Password': 'Contraseña',
       'Login': 'Iniciar sesión',
       '❌ Incorrect credentials': '❌ Credenciales incorrectas',
+      'Login with Google': 'Iniciar sesión con Google',
+      'or': 'o',
+      'Show password': 'Mostrar contraseña',
+      'Hide password': 'Ocultar contraseña',
+      'Tu cuenta no está asociada a ninguna empresa': 'Tu cuenta no está asociada a ninguna empresa',
       'Bot': 'Bot',
       'Activity': 'Actividad',
       'Edit': 'Editar',
@@ -988,6 +1006,11 @@
       'Password': 'Passwort',
       'Login': 'Anmelden',
       '❌ Incorrect credentials': '❌ Falsche Zugangsdaten',
+      'Login with Google': 'Mit Google anmelden',
+      'or': 'oder',
+      'Show password': 'Passwort anzeigen',
+      'Hide password': 'Passwort verbergen',
+      'Tu cuenta no está asociada a ninguna empresa': 'Ihr Konto ist keinem Unternehmen zugeordnet',
       'Bot': 'Bot',
       'Activity': 'Aktivität',
       'Edit': 'Bearbeiten',
@@ -1309,6 +1332,11 @@
       'Password': 'Senha',
       'Login': 'Entrar',
       '❌ Incorrect credentials': '❌ Credenciais incorretas',
+      'Login with Google': 'Entrar com o Google',
+      'or': 'ou',
+      'Show password': 'Mostrar senha',
+      'Hide password': 'Ocultar senha',
+      'Tu cuenta no está asociada a ninguna empresa': 'Sua conta não está associada a nenhuma empresa',
       'Bot': 'Bot',
       'Activity': 'Atividade',
       'Edit': 'Editar',
@@ -1613,7 +1641,10 @@
   const ATTR_KEYS_SYMBOL = Symbol('translationAttrKeys');
   const textNodes = new Map();
   const attrNodes = new Map();
-  let currentLanguage = localStorage.getItem('preferredLanguage') || DEFAULT_LANGUAGE;
+  const savedLanguage = localStorage.getItem('preferredLanguage');
+  let currentLanguage = SUPPORTED_LANGUAGES.includes(savedLanguage)
+    ? savedLanguage
+    : DEFAULT_LANGUAGE;
   const normalize = (value) => (value || '').replace(/\s+/g, ' ').trim();
   function getTranslation(lang, key) {
     const normalized = normalize(key);
@@ -1733,7 +1764,10 @@
   }
 
   function applyLanguage(lang) {
-    currentLanguage = lang || DEFAULT_LANGUAGE;
+    const normalizedLang = SUPPORTED_LANGUAGES.includes(lang)
+      ? lang
+      : DEFAULT_LANGUAGE;
+    currentLanguage = normalizedLang || DEFAULT_LANGUAGE;
     localStorage.setItem('preferredLanguage', currentLanguage);
     document.documentElement.lang = currentLanguage;
     refreshTargets();
@@ -1752,6 +1786,8 @@
     document.title = getTranslation(currentLanguage, 'Tomos Bot');
     const select = document.getElementById('languageSelect');
     if (select && select.value !== currentLanguage) select.value = currentLanguage;
+    const loginSelect = document.getElementById('loginLanguageSelect');
+    if (loginSelect && loginSelect.value !== currentLanguage) loginSelect.value = currentLanguage;
   }
   window.translationManager = {
     init() { applyLanguage(currentLanguage); },

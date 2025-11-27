@@ -104,6 +104,46 @@
     "pt": "❌ Credenciais incorretas"
   },
   {
+    "key": "Login with Google",
+    "en": "Login with Google",
+    "fr": "Se connecter avec Google",
+    "es": "Iniciar sesión con Google",
+    "de": "Mit Google anmelden",
+    "pt": "Entrar com o Google"
+  },
+  {
+    "key": "or",
+    "en": "or",
+    "fr": "ou",
+    "es": "o",
+    "de": "oder",
+    "pt": "ou"
+  },
+  {
+    "key": "Show password",
+    "en": "Show password",
+    "fr": "Afficher le mot de passe",
+    "es": "Mostrar contraseña",
+    "de": "Passwort anzeigen",
+    "pt": "Mostrar senha"
+  },
+  {
+    "key": "Hide password",
+    "en": "Hide password",
+    "fr": "Masquer le mot de passe",
+    "es": "Ocultar contraseña",
+    "de": "Passwort verbergen",
+    "pt": "Ocultar senha"
+  },
+  {
+    "key": "Tu cuenta no está asociada a ninguna empresa",
+    "en": "Your account is not linked to any company",
+    "fr": "Votre compte n'est associé à aucune entreprise",
+    "es": "Tu cuenta no está asociada a ninguna empresa",
+    "de": "Ihr Konto ist keinem Unternehmen zugeordnet",
+    "pt": "Sua conta não está associada a nenhuma empresa"
+  },
+  {
     "key": "Bot",
     "en": "Bot",
     "fr": "Bot",

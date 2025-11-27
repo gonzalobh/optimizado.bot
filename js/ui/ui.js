@@ -1,14 +1,19 @@
 document.addEventListener("DOMContentLoaded",()=>{
+const SUPPORTED_LANGUAGES = Array.isArray(window.SUPPORTED_LANGUAGES) ? window.SUPPORTED_LANGUAGES : ['en','es','fr','de','pt'];
+const DEFAULT_LANGUAGE = window.DEFAULT_LANGUAGE || 'en';
 if (window.translationManager) {
 translationManager.init();
-const languageSelectEl = document.getElementById('languageSelect');
-if (languageSelectEl) {
-const savedLanguage = localStorage.getItem('preferredLanguage');
-languageSelectEl.value = savedLanguage || DEFAULT_LANGUAGE;
-languageSelectEl.addEventListener('change', (event) => {
-translationManager.applyLanguage(event.target.value);
-renderLeadsTable();
-});
+const resolveInitialLanguage = () => {
+const stored = localStorage.getItem('preferredLanguage');
+if (SUPPORTED_LANGUAGES.includes(stored)) return stored;
+const managerLang = typeof translationManager.getCurrentLanguage === 'function'
+? translationManager.getCurrentLanguage()
+: null;
+if (managerLang && SUPPORTED_LANGUAGES.includes(managerLang)) return managerLang;
+const browserLanguage = (navigator.language || '').split('-')[0];
+if (SUPPORTED_LANGUAGES.includes(browserLanguage)) return browserLanguage;
+return DEFAULT_LANGUAGE;
+};
 const languageOptionMap = {
 en: 'language.english',
 fr: 'language.french',
@@ -16,18 +21,54 @@ es: 'language.spanish',
 de: 'language.german',
 pt: 'language.portuguese',
 };
-Array.from(languageSelectEl.options).forEach((option) => {
+const setupLanguageSelect = (selectEl) => {
+if (!selectEl) return;
+const initialLanguage = resolveInitialLanguage();
+if (selectEl.value !== initialLanguage) {
+selectEl.value = initialLanguage;
+}
+selectEl.addEventListener('change', (event) => {
+translationManager.applyLanguage(event.target.value);
+if (typeof renderLeadsTable === 'function') {
+renderLeadsTable();
+}
+});
+Array.from(selectEl.options).forEach((option) => {
 const key = languageOptionMap[option.value];
 if (!key) return;
 translationManager.register(option, key);
 });
-}
+};
+setupLanguageSelect(document.getElementById('languageSelect'));
+setupLanguageSelect(document.getElementById('loginLanguageSelect'));
 }
 const t = (key, vars) => window.translationManager ? translationManager.translate(key, vars) : key;
 const registerTranslationTarget = (node, key, target = 'text', options = {}) => {
 if (!node || !window.translationManager) return;
 translationManager.register(node, key, target, options);
 };
+if (window.translationManager) {
+const loginTitleEl = document.getElementById('loginTitle');
+const loginEmailLabelEl = document.getElementById('emailLabel');
+const loginEmailInputEl = document.getElementById('emailInput');
+const loginPasswordLabelEl = document.getElementById('passwordLabel');
+const loginPasswordInputEl = document.getElementById('passwordInput');
+const loginButtonEl = document.getElementById('btnLogin');
+const loginErrorTargetEl = document.getElementById('loginError');
+const googleLoginTextEl = document.getElementById('googleLoginText');
+const loginSeparatorTextEl = document.getElementById('loginSeparatorText');
+const togglePasswordSrTextEl = document.getElementById('togglePasswordSrText');
+registerTranslationTarget(loginTitleEl, 'Admin Access');
+registerTranslationTarget(loginEmailLabelEl, 'Email');
+registerTranslationTarget(loginEmailInputEl, 'admin@company.com', 'placeholder');
+registerTranslationTarget(loginPasswordLabelEl, 'Password');
+registerTranslationTarget(loginPasswordInputEl, 'Password', 'placeholder');
+registerTranslationTarget(loginButtonEl, 'Login');
+registerTranslationTarget(loginErrorTargetEl, '❌ Incorrect credentials');
+registerTranslationTarget(googleLoginTextEl, 'Login with Google');
+registerTranslationTarget(loginSeparatorTextEl, 'or');
+registerTranslationTarget(togglePasswordSrTextEl, 'Show password');
+}
 const PERSONALITY_TRANSLATION_ENTRIES = [
 { value: 'friendly', key: 'Friendly' },
 { value: 'professional', key: 'Professional' },
@@ -637,10 +678,14 @@ handleSidebarOnResize();
 window.addEventListener('resize', handleSidebarOnResize);
 }
 const loginErrorEl = $('loginError');
-const defaultLoginErrorMessage = loginErrorEl?.textContent || '';
+const getDefaultLoginErrorMessage = () => window.translationManager ? translationManager.translate('❌ Incorrect credentials') : (loginErrorEl?.textContent || '');
 const passwordInputEl = $('passwordInput');
 const togglePasswordVisibilityButton = $('togglePasswordVisibility');
 if (togglePasswordVisibilityButton && passwordInputEl) {
+const initialSrText = togglePasswordVisibilityButton.querySelector('.sr-only');
+if (initialSrText) {
+initialSrText.textContent = t('Show password');
+}
 togglePasswordVisibilityButton.addEventListener('click', () => {
 const isCurrentlyHidden = passwordInputEl.getAttribute('type') === 'password';
 passwordInputEl.setAttribute('type', isCurrentlyHidden ? 'text' : 'password');
@@ -651,7 +696,7 @@ icon.setAttribute('data-lucide', isCurrentlyHidden ? 'eye-off' : 'eye');
 }
 const srText = togglePasswordVisibilityButton.querySelector('.sr-only');
 if (srText) {
-srText.textContent = isCurrentlyHidden ? 'Ocultar contraseña' : 'Mostrar contraseña';
+srText.textContent = isCurrentlyHidden ? t('Hide password') : t('Show password');
 }
 if (window.lucide) {
 window.lucide.createIcons();
@@ -4273,7 +4318,7 @@ const email = $('emailInput').value.trim();
 const pass = $('passwordInput').value.trim();
 if (!email || !pass) return alert(t('Please enter your credentials.'));
 if (loginErrorEl) {
-loginErrorEl.textContent = defaultLoginErrorMessage;
+loginErrorEl.textContent = getDefaultLoginErrorMessage();
 loginErrorEl.classList.add('hidden');
 }
 try {
@@ -4281,7 +4326,7 @@ await auth.signInWithEmailAndPassword(email, pass);
 } catch (e) {
 console.error(e);
 if (loginErrorEl) {
-loginErrorEl.textContent = defaultLoginErrorMessage;
+loginErrorEl.textContent = getDefaultLoginErrorMessage();
 loginErrorEl.classList.remove('hidden');
 }
 }
@@ -4290,7 +4335,7 @@ const googleLoginButton = $('btnGoogleLogin');
 if (googleLoginButton) {
 googleLoginButton.addEventListener('click', async () => {
 if (loginErrorEl) {
-loginErrorEl.textContent = defaultLoginErrorMessage;
+loginErrorEl.textContent = getDefaultLoginErrorMessage();
 loginErrorEl.classList.add('hidden');
 }
 try {
@@ -4298,7 +4343,7 @@ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 } catch (error) {
 console.error(error);
 if (loginErrorEl) {
-loginErrorEl.textContent = defaultLoginErrorMessage;
+loginErrorEl.textContent = getDefaultLoginErrorMessage();
 loginErrorEl.classList.remove('hidden');
 }
 }
@@ -4391,16 +4436,16 @@ console.error(t('Error finding company:'), err);
 }
 if (!empresaDetectada) {
 if (loginErrorEl) {
-loginErrorEl.textContent = 'Tu cuenta no está asociada a ninguna empresa';
+loginErrorEl.textContent = t('Tu cuenta no está asociada a ninguna empresa');
 loginErrorEl.classList.remove('hidden');
 } else {
-alert('Tu cuenta no está asociada a ninguna empresa');
+alert(t('Tu cuenta no está asociada a ninguna empresa'));
 }
 await signOutFromFirebase();
 return;
 }
 if (loginErrorEl) {
-loginErrorEl.textContent = defaultLoginErrorMessage;
+loginErrorEl.textContent = getDefaultLoginErrorMessage();
 loginErrorEl.classList.add('hidden');
 }
 if (empresaDetectada) {
