@@ -1,4 +1,14 @@
 document.addEventListener("DOMContentLoaded",()=>{
+if (window.translationManager) {
+translationManager.init();
+const languageSelectEl = document.getElementById('languageSelect');
+if (languageSelectEl) {
+const savedLanguage = localStorage.getItem('preferredLanguage');
+languageSelectEl.value = savedLanguage || DEFAULT_LANGUAGE;
+languageSelectEl.addEventListener('change', (event) => {
+translationManager.applyLanguage(event.target.value);
+renderLeadsTable();
+});
 const languageOptionMap = {
 en: 'language.english',
 fr: 'language.french',
@@ -6,28 +16,12 @@ es: 'language.spanish',
 de: 'language.german',
 pt: 'language.portuguese',
 };
-const initializeLanguageSelect = (selectEl) => {
-if (!selectEl || !window.translationManager) return;
-const currentLang = translationManager.getCurrentLanguage ? translationManager.getCurrentLanguage() : null;
-if (currentLang) {
-selectEl.value = currentLang;
-}
-selectEl.addEventListener('change', (event) => {
-translationManager.applyLanguage(event.target.value);
-if (typeof renderLeadsTable === 'function') {
-renderLeadsTable();
-}
-});
-Array.from(selectEl.options).forEach((option) => {
+Array.from(languageSelectEl.options).forEach((option) => {
 const key = languageOptionMap[option.value];
 if (!key) return;
 translationManager.register(option, key);
 });
-};
-if (window.translationManager) {
-translationManager.init();
-const languageSelects = [document.getElementById('languageSelect'), document.getElementById('loginLanguageSelect')];
-languageSelects.forEach(initializeLanguageSelect);
+}
 }
 const t = (key, vars) => window.translationManager ? translationManager.translate(key, vars) : key;
 const registerTranslationTarget = (node, key, target = 'text', options = {}) => {
@@ -643,26 +637,10 @@ handleSidebarOnResize();
 window.addEventListener('resize', handleSidebarOnResize);
 }
 const loginErrorEl = $('loginError');
-const getDefaultLoginErrorMessage = () => t('❌ Incorrect credentials');
+const defaultLoginErrorMessage = loginErrorEl?.textContent || '';
 const passwordInputEl = $('passwordInput');
 const togglePasswordVisibilityButton = $('togglePasswordVisibility');
 if (togglePasswordVisibilityButton && passwordInputEl) {
-const updatePasswordToggleCopy = (isPasswordHidden) => {
-const labelKey = isPasswordHidden ? 'Show password' : 'Hide password';
-const translatedLabel = t(labelKey);
-togglePasswordVisibilityButton.setAttribute('aria-label', translatedLabel);
-if (window.translationManager) {
-translationManager.register(togglePasswordVisibilityButton, labelKey, 'aria-label');
-}
-const srText = togglePasswordVisibilityButton.querySelector('.sr-only');
-if (srText) {
-srText.textContent = translatedLabel;
-if (window.translationManager) {
-translationManager.register(srText, labelKey);
-}
-}
-};
-updatePasswordToggleCopy(true);
 togglePasswordVisibilityButton.addEventListener('click', () => {
 const isCurrentlyHidden = passwordInputEl.getAttribute('type') === 'password';
 passwordInputEl.setAttribute('type', isCurrentlyHidden ? 'text' : 'password');
@@ -671,7 +649,10 @@ const icon = togglePasswordVisibilityButton.querySelector('i[data-lucide]');
 if (icon) {
 icon.setAttribute('data-lucide', isCurrentlyHidden ? 'eye-off' : 'eye');
 }
-updatePasswordToggleCopy(!isCurrentlyHidden);
+const srText = togglePasswordVisibilityButton.querySelector('.sr-only');
+if (srText) {
+srText.textContent = isCurrentlyHidden ? 'Ocultar contraseña' : 'Mostrar contraseña';
+}
 if (window.lucide) {
 window.lucide.createIcons();
 }
@@ -4292,7 +4273,7 @@ const email = $('emailInput').value.trim();
 const pass = $('passwordInput').value.trim();
 if (!email || !pass) return alert(t('Please enter your credentials.'));
 if (loginErrorEl) {
-loginErrorEl.textContent = getDefaultLoginErrorMessage();
+loginErrorEl.textContent = defaultLoginErrorMessage;
 loginErrorEl.classList.add('hidden');
 }
 try {
@@ -4300,7 +4281,7 @@ await auth.signInWithEmailAndPassword(email, pass);
 } catch (e) {
 console.error(e);
 if (loginErrorEl) {
-loginErrorEl.textContent = getDefaultLoginErrorMessage();
+loginErrorEl.textContent = defaultLoginErrorMessage;
 loginErrorEl.classList.remove('hidden');
 }
 }
@@ -4309,7 +4290,7 @@ const googleLoginButton = $('btnGoogleLogin');
 if (googleLoginButton) {
 googleLoginButton.addEventListener('click', async () => {
 if (loginErrorEl) {
-loginErrorEl.textContent = getDefaultLoginErrorMessage();
+loginErrorEl.textContent = defaultLoginErrorMessage;
 loginErrorEl.classList.add('hidden');
 }
 try {
@@ -4317,7 +4298,7 @@ await auth.signInWithPopup(new firebase.auth.GoogleAuthProvider());
 } catch (error) {
 console.error(error);
 if (loginErrorEl) {
-loginErrorEl.textContent = getDefaultLoginErrorMessage();
+loginErrorEl.textContent = defaultLoginErrorMessage;
 loginErrorEl.classList.remove('hidden');
 }
 }
@@ -4419,7 +4400,7 @@ await signOutFromFirebase();
 return;
 }
 if (loginErrorEl) {
-loginErrorEl.textContent = getDefaultLoginErrorMessage();
+loginErrorEl.textContent = defaultLoginErrorMessage;
 loginErrorEl.classList.add('hidden');
 }
 if (empresaDetectada) {
